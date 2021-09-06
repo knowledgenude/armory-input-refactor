@@ -273,8 +273,13 @@ class Mouse extends CoordsInput {
 	}
 
 	function moveListener(x: Int, y: Int, movementX: Int, movementY: Int) {
-		if (ignoreMovement) ignoreMovement = false;
-		else if (!locked) coords.displaceTo(movementX, movementY);
+		if (ignoreMovement) {
+			coords.setPos(x, y);
+			ignoreMovement = blockMovement; // Keep ignoring movement case it will be blocked later
+			return;
+		}
+
+		if (!locked) coords.displaceTo(movementX, movementY);
 		else coords.setMovement(movementX, movementY);
 	}
 
