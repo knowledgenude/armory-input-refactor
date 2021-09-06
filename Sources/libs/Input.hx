@@ -153,6 +153,7 @@ class Coords2D {
 		this.y = y;
 	}
 
+	// Set movement delta if it is not blocked
 	public function setMovement(x: Int, y: Int) {
 		if (blockMovement) return;
 
@@ -161,6 +162,7 @@ class Coords2D {
 		moved = true;
 	}
 
+	// Set position and movement delta if it is not blocked
 	public function displaceTo(x: Int, y: Int) {
 		lastX = this.x;
 		lastY = this.y;
@@ -270,13 +272,13 @@ class Mouse extends CoordsInput {
 	}
 
 	function moveListener(x: Int, y: Int, movementX: Int, movementY: Int) {
-		if (ignoreMovement) ignoreMovement = blockMovement; // Keep ignoring movement case it will be blocked later. If false only the coords will be updated
+		if (ignoreMovement) ignoreMovement = blockMovement; // Keep ignoring movement case it will be blocked later. If false only the position is set
 
 		else if (!locked) {
-			coords.displaceTo(x, y); // Update movement and coords
+			coords.displaceTo(x, y); // Set position and movement if movement is not ignored. Everything is done
 			return;
 
-		} else coords.setMovement(movementX, movementY); // Update movement (coords are updated later)
+		} else coords.setMovement(movementX, movementY); // Set movement if the movement is not ignored. Position must be set later
 
 		coords.setPos(x, y);
 	}
