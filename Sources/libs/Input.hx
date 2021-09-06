@@ -154,17 +154,14 @@ class Coords2D {
 	}
 
 	public function setMovement(x: Int, y: Int) {
+		if (blockMovement) return;
+
 		movementX = x;
 		movementY = y;
 		moved = true;
 	}
 
 	public function displaceTo(x: Int, y: Int) {
-		if (blockMovement) {
-			setPos(x, y);
-			return;
-		}
-
 		lastX = this.x;
 		lastY = this.y;
 		this.x = x;
@@ -273,14 +270,15 @@ class Mouse extends CoordsInput {
 	}
 
 	function moveListener(x: Int, y: Int, movementX: Int, movementY: Int) {
-		if (ignoreMovement) {
-			coords.setPos(x, y);
-			ignoreMovement = blockMovement; // Keep ignoring movement case it will be blocked later
-			return;
-		}
+		if (ignoreMovement) ignoreMovement = blockMovement; // Keep ignoring movement case it will be blocked later. If false only the coords will be updated
 
-		if (!locked) coords.displaceTo(movementX, movementY);
-		else coords.setMovement(movementX, movementY);
+		else if (!locked) {
+			coords.displaceTo(x, y); // Update movement and coords
+			return;
+
+		} else coords.setMovement(movementX, movementY); // Update movement (coords are updated later)
+
+		coords.setPos(x, y);
 	}
 
 	function wheelListener(wheelDelta: Int) {
