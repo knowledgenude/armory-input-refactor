@@ -68,17 +68,10 @@ class Input {
 	}
 
 	public static function getGamepad(index: Int): Null<Gamepad> {
-		if (gamepads == null) {
-			gamepads = new haxe.ds.Vector<Null<Gamepad>>(4);
-		}
+		if (gamepads == null) gamepads = new haxe.ds.Vector<Null<Gamepad>>(4);
 
 		var g = gamepads[index];
-
-		if (g == null) {
-			if (index <= 4) {
-				gamepads[index] = new Gamepad(index);
-			}
-		}
+		if (g == null && index <= 4) gamepads[index] = new Gamepad(index);
 
 		return g;
 	}
@@ -231,8 +224,7 @@ class Mouse extends CoordsInput {
 		super();
 
 		var m = kha.input.Mouse.get();
-		if (m != null)
-			m.notify(downListener, upListener, moveListener, wheelListener);
+		if (m != null) m.notify(downListener, upListener, moveListener, wheelListener);
 
 		// Reset on foreground state
 		kha.System.notifyOnApplicationState(reset, null, null, null, null);
@@ -248,6 +240,7 @@ class Mouse extends CoordsInput {
 
 			} else {
 				khaMouse.unlock();
+				this.locked = false;
 			}
 		}
 
