@@ -15,6 +15,7 @@ import iron.App;
 	Created Gyroscope class.
 	Added blockMovement field to Mouse, Surface, Pen and Gamepad sticks
 	Added enums for all inputs
+	Deprecated various
 */
 
 /*
@@ -23,6 +24,7 @@ import iron.App;
 	Kha: Fix mouse movement influence after the cursor leave / enter the window.
 	Make mouse "compatible" with surface depending on target and add pinch for wheel delta
 	Add way to refer to keys trought string to keep compatibility (probably using virtual buttons for that)
+	Add events
 	Handle left / right modifier keys
 */
 
@@ -46,6 +48,7 @@ class Input {
 	final startedKeys = new Array<Int>();
 	final downKeys = new Array<Int>();
 	final releasedKeys = new Array<Int>();
+	var virtualKeys: Null<Map<String, Int>>;
 
 	function new() {
 		App.notifyOnEndFrame(endFrame);
@@ -72,7 +75,6 @@ class Input {
 
 		var g = gamepads[index];
 		if (g == null && index >= 0 && index <= 3) gamepads[index] = new Gamepad(index);
-
 		return g;
 	}
 
@@ -91,17 +93,58 @@ class Input {
 		return gyroscope;
 	}
 
-	// Will use string parameters on this functions and move enums to another
-	public inline function started(key = 0): Bool {
+	public inline function newStarted(key: Int): Bool {
 		return startedKeys.contains(key);
 	}
 
-	public inline function down(key = 0): Bool {
+	public inline function newDown(key: Int): Bool {
 		return downKeys.contains(key);
 	}
 
-	public inline function released(key = 0): Bool {
+	public inline function newReleased(key: Int): Bool {
 		return releasedKeys.contains(key);
+	}
+
+	public function setVirtualKey(virtual: String, key: Int) {
+		if (virtualKeys == null) virtualKeys = new Map<String, Int>();
+		virtualKeys.set(virtual, key);
+	}
+
+	// Deprecated use setVirtualKey()
+	public function setVirtual(virtual: String, key: String) {
+		if (virtualKeys == null) return;
+
+		var k = virtualKeys.get(key);
+		if (k == null) return;
+
+		setVirtualKey(virtual, k);
+	}
+
+	public inline function startedVirtual(key: String): Bool {
+		return newStarted(virtualKeys.get(key));
+	}
+
+	public inline function downVirtual(key: String): Bool {
+		return newDown(virtualKeys.get(key));
+	}
+
+	public inline function releasedVirtual(key: String): Bool {
+		return newReleased(virtualKeys.get(key));
+	}
+
+	// Deprecated use setVirtualKey() and startedVirtual()
+	public inline function started(key: String): Bool {
+		return startedVirtual(key);
+	}
+
+	// Deprecated use downVirtual()
+	public inline function down(key: String): Bool {
+		return downVirtual(key);
+	}
+
+	// Deprecated use releasedVirtual()
+	public inline function released(key: String): Bool {
+		return releasedVirtual(key);
 	}
 
 	function keyDown(key: Int) {
@@ -131,6 +174,34 @@ class Keyboard extends Input {
 
 		var k = kha.input.Keyboard.get();
 		if (k != null) k.notify(keyDown, keyUp);
+
+		// Deprecated
+		virtualKeys = [
+			"a" => KeyboardKey.KEY_A, "b" => KeyboardKey.KEY_B, "c" => KeyboardKey.KEY_C, "d" => KeyboardKey.KEY_D,
+			"e" => KeyboardKey.KEY_E, "f" => KeyboardKey.KEY_F, "g"=> KeyboardKey.KEY_G, "h" => KeyboardKey.KEY_H,
+			"i" => KeyboardKey.KEY_I, "j" => KeyboardKey.KEY_J, "k" => KeyboardKey.KEY_K, "l" => KeyboardKey.KEY_L,
+			"m" => KeyboardKey.KEY_M, "n" => KeyboardKey.KEY_N, "o" => KeyboardKey.KEY_O, "p" => KeyboardKey.KEY_P,
+			"q" => KeyboardKey.KEY_Q, "r" => KeyboardKey.KEY_R, "s" => KeyboardKey.KEY_S, "t" => KeyboardKey.KEY_T,
+			"u" => KeyboardKey.KEY_U, "v" => KeyboardKey.KEY_V, "w" => KeyboardKey.KEY_W, "x" => KeyboardKey.KEY_X,
+			"y" => KeyboardKey.KEY_Y, "z" => KeyboardKey.KEY_Z, "0" => KeyboardKey.KEY_0, "1" => KeyboardKey.KEY_1,
+			"2" => KeyboardKey.KEY_2, "3" => KeyboardKey.KEY_3, "4" => KeyboardKey.KEY_4, "5" => KeyboardKey.KEY_5,
+			"6" => KeyboardKey.KEY_6, "7" => KeyboardKey.KEY_7, "8" => KeyboardKey.KEY_8, "9" => KeyboardKey.KEY_9,
+			"space" => KeyboardKey.SPACE, "backspace" => KeyboardKey.BACKSPACE, "tab" => KeyboardKey.TAB, "enter" => KeyboardKey.ENTER,
+			"shift" => KeyboardKey.SHIFT, "control" => KeyboardKey.CTRL, "alt" => KeyboardKey.ALT, "win" => KeyboardKey.WIN,
+			"escape" => KeyboardKey.ESC, "delete" => KeyboardKey.DELETE, "up" => KeyboardKey.UP, "down" => KeyboardKey.DOWN,
+			"left" => KeyboardKey.LEFT, "right" => KeyboardKey.RIGHT, "back" => KeyboardKey.BACK, "," => KeyboardKey.COMMA,
+			"." => KeyboardKey.DECIMAL, ":" => KeyboardKey.COLON, ";" => KeyboardKey.SEMICOLON, "<" => KeyboardKey.LESS_THAN,
+			"=" => KeyboardKey.EQUALS, ">" => KeyboardKey.GREATER_THAN, "?" => KeyboardKey.QUESTION, "!" => KeyboardKey.EXCLAMATION,
+			'"' => KeyboardKey.DOUBLE_QUOTE, "#" => KeyboardKey.HASH, "$" => KeyboardKey.DOLLAR, "%" => KeyboardKey.PERCENT,
+			"&" => KeyboardKey.AMPERSAND, "_" => KeyboardKey.UNDERSCORE, "(" => KeyboardKey.OPEN_PARENTESIS, ")" => KeyboardKey.CLOSE_PARENTESIS,
+			"*" => KeyboardKey.ASTERISK, "|" => KeyboardKey.PIPE, "{" => KeyboardKey.OPEN_CURLY_BRACKET, "}" => KeyboardKey.CLOSE_CURLY_BRACKET,
+			"[" => KeyboardKey.OPEN_BRACKET, "]" => KeyboardKey.CLOSE_BRACKET, "~" => KeyboardKey.TILDE, "`" => KeyboardKey.BACK_QUOTE,
+			"/" => KeyboardKey.SLASH, "\\" => KeyboardKey.BACK_SLASH, "@" => KeyboardKey.AT, "+" => KeyboardKey.ADD,
+			"-" => KeyboardKey.HYPHEN, "f1" => KeyboardKey.F1, "f2" => KeyboardKey.F2, "f3" => KeyboardKey.F3,
+			"f4" => KeyboardKey.F4, "f5" => KeyboardKey.F5, "f6" => KeyboardKey.F6, "f7" => KeyboardKey.F7,
+			"f8" => KeyboardKey.F8, "f9" => KeyboardKey.F9, "f10" => KeyboardKey.F10, "f11" => KeyboardKey.F11,
+			"f12" => KeyboardKey.F12
+		];
 	}
 }
 
@@ -227,6 +298,9 @@ class Mouse extends CoordsInput {
 
 		// Reset on foreground state
 		kha.System.notifyOnApplicationState(reset, null, null, null, null);
+
+		// Deprecated
+		virtualKeys = ["left" => MouseButton.LEFT, "right" => MouseButton.RIGHT, "middle" => MouseButton.MIDDLE];
 	}
 
 	public function set_locked(locked: Bool) {
@@ -301,6 +375,9 @@ class Pen extends CoordsInput {
 
 		var p = kha.input.Pen.get();
 		if (p != null) p.notify(downListener, upListener, moveListener);
+
+		// Deprecated
+		virtualKeys = ["tip" => PenButton.TIP];
 	}
 
 	function downListener(x: Int, y: Int, pressure: Float) {
@@ -393,10 +470,24 @@ class Gamepad extends Input {
 		if (g != null) g.notify(axisListener, buttonListener);
 
 		this.index = index;
+
+		// Deprecated
+		virtualKeys = [
+			"cross" => PSButton.CROSS, "circle" => PSButton.CIRCLE, "square" => PSButton.SQUARE, "triangle" => PSButton.TRIANGLE,
+			"l1" => PSButton.L1, "r1" => PSButton.R1, "l2" => PSButton.L2, "r2" => PSButton.R2,
+			"share" => PSButton.SHARE, "options" => PSButton.MENU, "l3" => PSButton.L3, "r3" => PSButton.R3,
+			"up" => PSButton.UP, "down" => PSButton.DOWN, "left" => PSButton.LEFT, "right" => PSButton.RIGHT,
+			"home" => PSButton.HOME, "touchpad" => PSButton.TOUCHPAD
+		];
 	}
 
-	public inline function getPressure(button: Int): Float {
+	public function getPressure(button: Int): Float {
 		var p = pressures[button];
+		return p != null ? p : 0.0;
+	}
+
+	public function getPressureVirtual(button: String): Float {
+		var p = pressures[virtualKeys.get(button)];
 		return p != null ? p : 0.0;
 	}
 
@@ -630,41 +721,41 @@ abstract KeyboardKey(Int) from Int to Int {
 	var F23 = KeyCode.F23;
 	var F24 = KeyCode.F24;
 
-	var DOUBLE_QUOTE = KeyCode.DoubleQuote;
-	var BACK_QUOTE = KeyCode.BackQuote;
-	var QUOTE = KeyCode.Quote;
-	var EXCLAMATION = KeyCode.Exclamation;
-	var AT = KeyCode.At;
-	var HASH = KeyCode.Hash;
-	var DOLLAR = KeyCode.Dollar;
-	var PERCENT = KeyCode.Percent;
-	var AMPERSAND = KeyCode.Ampersand;
-	var ASTERISK = KeyCode.Asterisk;
-	var OPEN_PARENTESIS = KeyCode.OpenParen;
-	var CLOSE_PARENTESIS = KeyCode.CloseParen;
-	var UNDERSCORE = KeyCode.Underscore;
-	var HYPHEN = KeyCode.HyphenMinus;
-	var PLUS = KeyCode.Plus;
-	var MINUS = KeyCode.HyphenMinus;
-	var EQUALS = KeyCode.Equals;
-	var OPEN_CURLY_BRACKET = KeyCode.OpenCurlyBracket;
-	var OPEN_BRACKET = KeyCode.OpenBracket;
-	var CLOSE_CURLY_BRACKET = KeyCode.CloseCurlyBracket;
-	var CLOSE_BRACKET = KeyCode.CloseBracket;
-	var CIRCUMFLEX = KeyCode.Circumflex;
-	var TILDE = KeyCode.Tilde;
-	var BACK_SLASH = KeyCode.BackSlash;
-	var SLASH = KeyCode.Slash;
-	var LESS_THAN = KeyCode.LessThan;
-	var GREATER_THAN = KeyCode.GreaterThan;
-	var PERIOD = KeyCode.Period;
+	var DOUBLE_QUOTE = KeyCode.DoubleQuote; // "
+	var BACK_QUOTE = KeyCode.BackQuote; // `
+	var QUOTE = KeyCode.Quote; // '
+	var EXCLAMATION = KeyCode.Exclamation; // !
+	var AT = KeyCode.At; // @
+	var HASH = KeyCode.Hash; // #
+	var DOLLAR = KeyCode.Dollar; // $
+	var PERCENT = KeyCode.Percent; // %
+	var AMPERSAND = KeyCode.Ampersand; // &
+	var ASTERISK = KeyCode.Asterisk; // *
+	var OPEN_PARENTESIS = KeyCode.OpenParen; // (
+	var CLOSE_PARENTESIS = KeyCode.CloseParen; // )
+	var UNDERSCORE = KeyCode.Underscore; // _
+	var HYPHEN = KeyCode.HyphenMinus; // -
+	var PLUS = KeyCode.Plus; // +
+	var MINUS = KeyCode.HyphenMinus; // -
+	var EQUALS = KeyCode.Equals; // =
+	var OPEN_BRACKET = KeyCode.OpenBracket; // [
+	var CLOSE_BRACKET = KeyCode.CloseBracket; // ]
+	var OPEN_CURLY_BRACKET = KeyCode.OpenCurlyBracket; // {
+	var CLOSE_CURLY_BRACKET = KeyCode.CloseCurlyBracket; // {
+	var CIRCUMFLEX = KeyCode.Circumflex; // ^
+	var TILDE = KeyCode.Tilde; // ~
+	var BACK_SLASH = KeyCode.BackSlash; // \
+	var SLASH = KeyCode.Slash; // /
+	var LESS_THAN = KeyCode.LessThan; // <
+	var GREATER_THAN = KeyCode.GreaterThan; // >
 	var SEPARATOR = KeyCode.Separator;
-	var COMMA = KeyCode.Comma;
+	var COMMA = KeyCode.Comma; // ,
+	var PERIOD = KeyCode.Period; // .
 	var DECIMAL = KeyCode.Decimal;
-	var COLON = KeyCode.Colon;
-	var SEMICOLON = KeyCode.Semicolon;
-	var QUESTION = KeyCode.QuestionMark;
-	var PIPE = KeyCode.Pipe;
+	var COLON = KeyCode.Colon; // :
+	var SEMICOLON = KeyCode.Semicolon; // ;
+	var QUESTION = KeyCode.QuestionMark; // ?
+	var PIPE = KeyCode.Pipe; // |
 
 	var PRINT_SCREEN = KeyCode.PrintScreen;
 	var SCROLL_LOCK = KeyCode.ScrollLock;
@@ -683,7 +774,7 @@ abstract KeyboardKey(Int) from Int to Int {
 	var ALT_GR = KeyCode.AltGr;
 	var CONTEXT = KeyCode.ContextMenu;
 	var BACKSPACE = KeyCode.Backspace;
-	var RETURN = KeyCode.Return;
+	var ENTER = KeyCode.Return;
 
 	var HOME = KeyCode.Home;
 	var END = KeyCode.End;
