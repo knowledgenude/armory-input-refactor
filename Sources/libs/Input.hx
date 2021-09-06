@@ -71,7 +71,7 @@ class Input {
 		if (gamepads == null) gamepads = new haxe.ds.Vector<Null<Gamepad>>(4);
 
 		var g = gamepads[index];
-		if (g == null && index <= 4) gamepads[index] = new Gamepad(index);
+		if (g == null && index >= 0 && index <= 3) gamepads[index] = new Gamepad(index);
 
 		return g;
 	}
