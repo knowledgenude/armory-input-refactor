@@ -14,7 +14,7 @@ class Test extends iron.Trait {
 
 		notifyOnUpdate(function() {
 			if (k.started("test") || k.started("space")) {
-				trace("event");
+				trace("key started");
 			}
 		});
 	}

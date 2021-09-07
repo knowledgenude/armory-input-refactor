@@ -15,17 +15,16 @@ import iron.App;
 	Created Gyroscope class.
 	Added blockMovement field to Mouse, Surface, Pen and Gamepad sticks
 	Added enums for all inputs
-	Deprecated various
+	Fixed mouse movement delta when leave / enter the window. The fix only works for hmtl5, HL/C and hxcpp.
 */
 
 /*
-	Add repeat keys
-	Add combo keys
-	Kha: Fix mouse movement influence after the cursor leave / enter the window.
+	Fix mouse right button in android
+	Add deprecate notice where needed
 	Make mouse "compatible" with surface depending on target and add pinch for wheel delta
-	Add way to refer to keys trought string to keep compatibility (probably using virtual buttons for that)
-	Add events
-	Handle left / right modifier keys
+	Add docs
+	Find way to handle left / right modifier keys
+
 */
 
 /*
@@ -110,7 +109,6 @@ class Input {
 		virtualKeys.set(virtual, key);
 	}
 
-	// Deprecated use setVirtualKey()
 	public function setVirtual(virtual: String, key: String) {
 		if (virtualKeys == null) return;
 
@@ -132,17 +130,14 @@ class Input {
 		return newReleased(virtualKeys.get(key));
 	}
 
-	// Deprecated use setVirtualKey() and startedVirtual()
 	public inline function started(key: String): Bool {
 		return startedVirtual(key);
 	}
 
-	// Deprecated use downVirtual()
 	public inline function down(key: String): Bool {
 		return downVirtual(key);
 	}
 
-	// Deprecated use releasedVirtual()
 	public inline function released(key: String): Bool {
 		return releasedVirtual(key);
 	}
@@ -169,13 +164,15 @@ class Input {
 }
 
 class Keyboard extends Input {
+	var repeatKey = false;
+	var repeatTime = 0.0;
+
 	public function new() {
 		super();
 
 		var k = kha.input.Keyboard.get();
 		if (k != null) k.notify(keyDown, keyUp);
 
-		// Deprecated
 		virtualKeys = [
 			"a" => KeyboardKey.KEY_A, "b" => KeyboardKey.KEY_B, "c" => KeyboardKey.KEY_C, "d" => KeyboardKey.KEY_D,
 			"e" => KeyboardKey.KEY_E, "f" => KeyboardKey.KEY_F, "g"=> KeyboardKey.KEY_G, "h" => KeyboardKey.KEY_H,
@@ -202,6 +199,27 @@ class Keyboard extends Input {
 			"f8" => KeyboardKey.F8, "f9" => KeyboardKey.F9, "f10" => KeyboardKey.F10, "f11" => KeyboardKey.F11,
 			"f12" => KeyboardKey.F12
 		];
+	}
+
+	public function repeat(key: String): Bool {
+		var k = virtualKeys.get(key);
+		return newStarted(k) || (repeatKey && newDown(k));
+	}
+
+	override function keyDown(key: Int) {
+		super.keyDown(key);
+		repeatTime = kha.Scheduler.time() + 0.4;
+	}
+
+	override function endFrame() {
+		super.endFrame();
+
+		if (kha.Scheduler.time() - repeatTime > 0.05) {
+			repeatTime = kha.Scheduler.time();
+			repeatKey = true;
+		}
+
+		else repeatKey = false;
 	}
 }
 
@@ -288,13 +306,15 @@ class Mouse extends CoordsInput {
 	public var wheelDelta(default, null) = 0;
 	public var locked(default, set) = false;
 	public var hidden(default, set) = false;
-	var ignoreMovement = false; // Prevent movement catching after change lock state
+	var ignoreMovement = false; // Ignore movement to avoid wrong delta
 
 	public function new() {
 		super();
 
 		var m = kha.input.Mouse.get();
-		if (m != null) m.notify(downListener, upListener, moveListener, wheelListener);
+		if (m != null) m.notify(downListener, upListener, moveListener, wheelListener, function() {
+			ignoreMovement = true; // Ignore movement after the cursor leaves the window to avoid wrong delta
+		});
 
 		// Reset on foreground state
 		kha.System.notifyOnApplicationState(reset, null, null, null, null);
@@ -309,7 +329,7 @@ class Mouse extends CoordsInput {
 		if (khaMouse.canLock()) {
 			if (locked) {
 				khaMouse.lock();
-				ignoreMovement = this.locked = true;
+				ignoreMovement = this.locked = true; // Ignore movement after the cursor is locked to avoid wrong delta
 
 			} else {
 				khaMouse.unlock();
