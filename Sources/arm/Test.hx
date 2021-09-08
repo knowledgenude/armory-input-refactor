@@ -9,13 +9,11 @@ class Test extends iron.Trait {
 		super();
 
 		iron.Scene.active.notifyOnInit(function() {
-			k.setVirtualKey("test", KeyboardKey.KEY_W);
+
 		});
 
 		notifyOnUpdate(function() {
-			if (k.started("test") || k.started("space")) {
-				trace("key started");
-			}
+
 		});
 	}
 }

@@ -10,18 +10,22 @@ import iron.App;
 	Previously i guess it was impossible to decide whether to use or not mouse or surface in mobile. Now this can change.
 	Fixed mouse movement influence after changing the cursor lock state.
 	Improved way to set mouse hide / lock states. Now is just changing a variable.
-	Improved performance. Now the started, down and released keys lists just stores its indexes and the keys are filtered by its string representation just when needed.
+	Performance may be increased in some situations. Now the started, down and released keys lists just stores its indexes and the keys are filtered by its string representation just when needed.
 	Created a properly Surface class.
 	Created Gyroscope class.
-	Added blockMovement field to Mouse, Surface, Pen and Gamepad sticks
-	Added enums for all inputs
+	Added blockMovement field to Mouse, Surface, Pen and Gamepad sticks.
+	Added enums for all inputs.
 	Fixed mouse movement delta when leave / enter the window. The fix only works for hmtl5, HL/C and hxcpp.
+	Repeat method is avaiable for all inputs.
+	Added anyStarted, anyDown and anyReleased methods.
 */
 
 /*
-	Fix mouse right button in android
+	Add pinch
+	Match previous field names: mouse, gamepad sticks, etc.
+	mouse right button in android
 	Add deprecate notice where needed
-	Make mouse "compatible" with surface depending on target and add pinch for wheel delta
+	Make mouse "compatible" with surface depending on target
 	Add docs
 	Find way to handle left / right modifier keys
 
@@ -44,14 +48,26 @@ class Input {
 
 	static var gamepads: Null<haxe.ds.Vector<Null<Gamepad>>>;
 
-	final startedKeys = new Array<Int>();
-	final downKeys = new Array<Int>();
-	final releasedKeys = new Array<Int>();
-	var virtualKeys: Null<Map<String, Int>>;
+	final startedKeyCodes = new Array<Int>();
+	final downKeyCodes = new Array<Int>();
+	final releasedKeyCodes = new Array<Int>();
+
+	var virtualKeys: Null<Map<Int, String>>;
+	var startedVirtualKeys: Array<String>;
+	var downVirtualKeys: Array<String>;
+	var releasedVirtualKeys: Array<String>;
+
+	public var lastKeyCodeDown: Null<Int>;
+
+	var repeatKey = false;
+	var repeatTime = 0.0;
 
 	function new() {
 		App.notifyOnEndFrame(endFrame);
 		App.notifyOnReset(reset);
+
+		// Force virtual keys initialization to keep backward compatibility
+		setVirtualKey(0, "");
 	}
 
 	public static function getKeyboard(): Keyboard {
@@ -92,81 +108,144 @@ class Input {
 		return gyroscope;
 	}
 
-	public inline function newStarted(key: Int): Bool {
-		return startedKeys.contains(key);
+	public inline function newStarted(keyCode = 0): Bool {
+		return startedKeyCodes.contains(keyCode);
 	}
 
-	public inline function newDown(key: Int): Bool {
-		return downKeys.contains(key);
+	public inline function newDown(keyCode = 0): Bool {
+		return downKeyCodes.contains(keyCode);
 	}
 
-	public inline function newReleased(key: Int): Bool {
-		return releasedKeys.contains(key);
+	public inline function newReleased(keyCode = 0): Bool {
+		return releasedKeyCodes.contains(keyCode);
 	}
 
-	public function setVirtualKey(virtual: String, key: Int) {
-		if (virtualKeys == null) virtualKeys = new Map<String, Int>();
-		virtualKeys.set(virtual, key);
+	public function newRepeat(keyCode: Int): Bool {
+		return newStarted(keyCode) || (repeatKey && newDown(keyCode));
 	}
 
-	public function setVirtual(virtual: String, key: String) {
-		if (virtualKeys == null) return;
-
-		var k = virtualKeys.get(key);
-		if (k == null) return;
-
-		setVirtualKey(virtual, k);
+	public inline function anyStarted(): Bool {
+		return startedKeyCodes.length > 0;
 	}
 
-	public inline function startedVirtual(key: String): Bool {
-		return newStarted(virtualKeys.get(key));
+	public inline function anyDown(): Bool {
+		return downKeyCodes.length > 0;
 	}
 
-	public inline function downVirtual(key: String): Bool {
-		return newDown(virtualKeys.get(key));
+	public inline function anyReleased(): Bool {
+		return releasedKeyCodes.length > 0;
 	}
 
-	public inline function releasedVirtual(key: String): Bool {
-		return newReleased(virtualKeys.get(key));
+	public function setVirtualKey(keyCode: Int, virtualKey: String) {
+		if (virtualKeys == null) {
+			virtualKeys = new Map<Int, String>();
+			startedVirtualKeys = new Array<String>();
+			downVirtualKeys = new Array<String>();
+			releasedVirtualKeys = new Array<String>();
+		}
+
+		virtualKeys.set(keyCode, virtualKey);
 	}
 
-	public inline function started(key: String): Bool {
-		return startedVirtual(key);
+	public inline function startedVirtual(virtualKey: String): Bool {
+		return startedVirtualKeys.contains(virtualKey);
 	}
 
-	public inline function down(key: String): Bool {
-		return downVirtual(key);
+	public inline function downVirtual(virtualKey: String): Bool {
+		return downVirtualKeys.contains(virtualKey);
 	}
 
-	public inline function released(key: String): Bool {
-		return releasedVirtual(key);
+	public inline function releasedVirtual(virtualKey: String): Bool {
+		return releasedVirtualKeys.contains(virtualKey);
 	}
 
-	function keyDown(key: Int) {
-		startedKeys.push(key);
-		downKeys.push(key);
+	public function repeatVirtual(virtualKey: String): Bool {
+		return startedVirtual(virtualKey) || (repeatKey && downVirtual(virtualKey));
 	}
 
-	function keyUp(key: Int) {
-		downKeys.remove(key);
-		releasedKeys.push(key);
+	// Keep compatibility
+	public function repeat(virtualKey: String): Bool {
+		return repeatVirtual(virtualKey);
+	}
+
+	public inline function setVirtual(virtualKey: String, key: String) {
+		for (kc => v in virtualKeys)
+			if (v == key) setVirtualKey(kc, virtualKey);
+	}
+
+	public inline function started(virtualKey = ""): Bool {
+		return startedVirtual(virtualKey);
+	}
+
+	public inline function down(virtualKey = ""): Bool {
+		return downVirtual(virtualKey);
+	}
+
+	public inline function released(virtualKey = ""): Bool {
+		return releasedVirtual(virtualKey);
+	}
+	// End
+
+	function keyDown(keyCode: Int) {
+		startedKeyCodes.push(keyCode);
+		downKeyCodes.push(keyCode);
+
+		if (virtualKeys != null) {
+			var str = virtualKeys.get(keyCode);
+
+			if (str != null) {
+				startedVirtualKeys.push(str);
+				downVirtualKeys.push(str);
+			}
+		}
+
+		repeatTime = kha.Scheduler.time() + 0.4;
+
+		lastKeyCodeDown = keyCode;
+	}
+
+	function keyUp(keyCode: Int) {
+		downKeyCodes.remove(keyCode);
+		releasedKeyCodes.push(keyCode);
+
+		if (virtualKeys != null) {
+			var str = virtualKeys.get(keyCode);
+
+			if (str != null) {
+				downVirtualKeys.remove(str);
+				releasedVirtualKeys.push(str);
+			}
+		}
 	}
 
 	function endFrame() {
-		startedKeys.resize(0);
-		releasedKeys.resize(0);
+		if (anyDown()) { // No need to resize if no key is down
+			startedKeyCodes.resize(0);
+			releasedKeyCodes.resize(0);
+
+			if (virtualKeys != null) {
+				startedVirtualKeys.resize(0);
+				releasedVirtualKeys.resize(0);
+			}
+		}
+
+		if (kha.Scheduler.time() - repeatTime > 0.05) {
+			repeatTime = kha.Scheduler.time();
+			repeatKey = true;
+		}
+		else repeatKey = false;
 	}
 
 	function reset() {
-		downKeys.resize(0);
+		downKeyCodes.resize(0);
+
+		if (virtualKeys != null) downVirtualKeys.resize(0);
+
 		endFrame();
 	}
 }
 
 class Keyboard extends Input {
-	var repeatKey = false;
-	var repeatTime = 0.0;
-
 	public function new() {
 		super();
 
@@ -174,52 +253,34 @@ class Keyboard extends Input {
 		if (k != null) k.notify(keyDown, keyUp);
 
 		virtualKeys = [
-			"a" => KeyboardKey.KEY_A, "b" => KeyboardKey.KEY_B, "c" => KeyboardKey.KEY_C, "d" => KeyboardKey.KEY_D,
-			"e" => KeyboardKey.KEY_E, "f" => KeyboardKey.KEY_F, "g"=> KeyboardKey.KEY_G, "h" => KeyboardKey.KEY_H,
-			"i" => KeyboardKey.KEY_I, "j" => KeyboardKey.KEY_J, "k" => KeyboardKey.KEY_K, "l" => KeyboardKey.KEY_L,
-			"m" => KeyboardKey.KEY_M, "n" => KeyboardKey.KEY_N, "o" => KeyboardKey.KEY_O, "p" => KeyboardKey.KEY_P,
-			"q" => KeyboardKey.KEY_Q, "r" => KeyboardKey.KEY_R, "s" => KeyboardKey.KEY_S, "t" => KeyboardKey.KEY_T,
-			"u" => KeyboardKey.KEY_U, "v" => KeyboardKey.KEY_V, "w" => KeyboardKey.KEY_W, "x" => KeyboardKey.KEY_X,
-			"y" => KeyboardKey.KEY_Y, "z" => KeyboardKey.KEY_Z, "0" => KeyboardKey.KEY_0, "1" => KeyboardKey.KEY_1,
-			"2" => KeyboardKey.KEY_2, "3" => KeyboardKey.KEY_3, "4" => KeyboardKey.KEY_4, "5" => KeyboardKey.KEY_5,
-			"6" => KeyboardKey.KEY_6, "7" => KeyboardKey.KEY_7, "8" => KeyboardKey.KEY_8, "9" => KeyboardKey.KEY_9,
-			"space" => KeyboardKey.SPACE, "backspace" => KeyboardKey.BACKSPACE, "tab" => KeyboardKey.TAB, "enter" => KeyboardKey.ENTER,
-			"shift" => KeyboardKey.SHIFT, "control" => KeyboardKey.CTRL, "alt" => KeyboardKey.ALT, "win" => KeyboardKey.WIN,
-			"escape" => KeyboardKey.ESC, "delete" => KeyboardKey.DELETE, "up" => KeyboardKey.UP, "down" => KeyboardKey.DOWN,
-			"left" => KeyboardKey.LEFT, "right" => KeyboardKey.RIGHT, "back" => KeyboardKey.BACK, "," => KeyboardKey.COMMA,
-			"." => KeyboardKey.DECIMAL, ":" => KeyboardKey.COLON, ";" => KeyboardKey.SEMICOLON, "<" => KeyboardKey.LESS_THAN,
-			"=" => KeyboardKey.EQUALS, ">" => KeyboardKey.GREATER_THAN, "?" => KeyboardKey.QUESTION, "!" => KeyboardKey.EXCLAMATION,
-			'"' => KeyboardKey.DOUBLE_QUOTE, "#" => KeyboardKey.HASH, "$" => KeyboardKey.DOLLAR, "%" => KeyboardKey.PERCENT,
-			"&" => KeyboardKey.AMPERSAND, "_" => KeyboardKey.UNDERSCORE, "(" => KeyboardKey.OPEN_PARENTESIS, ")" => KeyboardKey.CLOSE_PARENTESIS,
-			"*" => KeyboardKey.ASTERISK, "|" => KeyboardKey.PIPE, "{" => KeyboardKey.OPEN_CURLY_BRACKET, "}" => KeyboardKey.CLOSE_CURLY_BRACKET,
-			"[" => KeyboardKey.OPEN_BRACKET, "]" => KeyboardKey.CLOSE_BRACKET, "~" => KeyboardKey.TILDE, "`" => KeyboardKey.BACK_QUOTE,
-			"/" => KeyboardKey.SLASH, "\\" => KeyboardKey.BACK_SLASH, "@" => KeyboardKey.AT, "+" => KeyboardKey.ADD,
-			"-" => KeyboardKey.HYPHEN, "f1" => KeyboardKey.F1, "f2" => KeyboardKey.F2, "f3" => KeyboardKey.F3,
-			"f4" => KeyboardKey.F4, "f5" => KeyboardKey.F5, "f6" => KeyboardKey.F6, "f7" => KeyboardKey.F7,
-			"f8" => KeyboardKey.F8, "f9" => KeyboardKey.F9, "f10" => KeyboardKey.F10, "f11" => KeyboardKey.F11,
-			"f12" => KeyboardKey.F12
+			KeyboardKey.KEY_A => "a", KeyboardKey.KEY_B => "b", KeyboardKey.KEY_C => "c", KeyboardKey.KEY_D => "d",
+			KeyboardKey.KEY_E => "e", KeyboardKey.KEY_F => "f", KeyboardKey.KEY_G => "g", KeyboardKey.KEY_H => "h",
+			KeyboardKey.KEY_I => "i", KeyboardKey.KEY_J => "j", KeyboardKey.KEY_K => "k", KeyboardKey.KEY_L => "l",
+			KeyboardKey.KEY_M => "m", KeyboardKey.KEY_N => "n", KeyboardKey.KEY_O => "o", KeyboardKey.KEY_P => "p",
+			KeyboardKey.KEY_Q => "q", KeyboardKey.KEY_R => "r", KeyboardKey.KEY_S => "s", KeyboardKey.KEY_T => "t",
+			KeyboardKey.KEY_U => "u", KeyboardKey.KEY_V => "v", KeyboardKey.KEY_W => "w", KeyboardKey.KEY_X => "x",
+			KeyboardKey.KEY_Y => "y", KeyboardKey.KEY_Z => "z", KeyboardKey.KEY_0 => "0", KeyboardKey.KEY_1 => "1",
+			KeyboardKey.KEY_2 => "2", KeyboardKey.KEY_3 => "3", KeyboardKey.KEY_4 => "4", KeyboardKey.KEY_5 => "5",
+			KeyboardKey.KEY_6 => "6", KeyboardKey.KEY_7 => "7", KeyboardKey.KEY_8 => "8", KeyboardKey.KEY_9 => "9",
+			KeyboardKey.SPACE => "space", KeyboardKey.BACKSPACE => "backspace", KeyboardKey.TAB => "tab", KeyboardKey.ENTER => "enter",
+			KeyboardKey.SHIFT => "shift", KeyboardKey.CTRL => "control", KeyboardKey.ALT => "alt", KeyboardKey.WIN => "win",
+			KeyboardKey.ESC => "escape", KeyboardKey.DELETE => "delete", KeyboardKey.UP => "up", KeyboardKey.DOWN => "down",
+			KeyboardKey.LEFT => "left", KeyboardKey.RIGHT => "right", KeyboardKey.BACK => "back", KeyboardKey.COMMA => ",",
+			KeyboardKey.DECIMAL => ".", KeyboardKey.COLON => ":", KeyboardKey.SEMICOLON => ";", KeyboardKey.LESS_THAN => "<",
+			KeyboardKey.EQUALS => "=", KeyboardKey.GREATER_THAN => ">", KeyboardKey.QUESTION => "$", KeyboardKey.EXCLAMATION => "!",
+			KeyboardKey.DOUBLE_QUOTE => '"', KeyboardKey.HASH => "#", KeyboardKey.DOLLAR => "$", KeyboardKey.PERCENT => "%",
+			KeyboardKey.AMPERSAND => "&", KeyboardKey.UNDERSCORE => "_", KeyboardKey.OPEN_PARENTESIS => "(", KeyboardKey.CLOSE_PARENTESIS => ")",
+			KeyboardKey.ASTERISK => "*", KeyboardKey.PIPE => "|", KeyboardKey.OPEN_CURLY_BRACKET => "{", KeyboardKey.CLOSE_CURLY_BRACKET => "}",
+			KeyboardKey.OPEN_BRACKET => "[", KeyboardKey.CLOSE_BRACKET => "]", KeyboardKey.TILDE => "~", KeyboardKey.BACK_QUOTE => "`",
+			KeyboardKey.SLASH => "/", KeyboardKey.BACK_SLASH => "\\",  KeyboardKey.AT => "@", KeyboardKey.ADD => "+",
+			KeyboardKey.HYPHEN => "-", KeyboardKey.F1 => "f1", KeyboardKey.F2 => "f2", KeyboardKey.F3 => "f3",
+			KeyboardKey.F4 => "f4", KeyboardKey.F5 => "f5", KeyboardKey.F6 => "f6", KeyboardKey.F7 => "f7",
+			KeyboardKey.F8 => "f8", KeyboardKey.F9 => "f9", KeyboardKey.F10 => "f10", KeyboardKey.F11 => "f11",
+			KeyboardKey.F12 => "f12", KeyboardKey.PLUS => "+", KeyboardKey.SUB => "-", KeyboardKey.NUM_0 => "0",
+			KeyboardKey.NUM_1 => "1", KeyboardKey.NUM_2 => "2", KeyboardKey.NUM_3 => "3", KeyboardKey.NUM_4 => "4",
+			KeyboardKey.NUM_5 => "5", KeyboardKey.NUM_6 => "6", KeyboardKey.NUM_7 => "7", KeyboardKey.NUM_8 => "8",
+			KeyboardKey.NUM_9 => "9"
 		];
-	}
-
-	public function repeat(key: String): Bool {
-		var k = virtualKeys.get(key);
-		return newStarted(k) || (repeatKey && newDown(k));
-	}
-
-	override function keyDown(key: Int) {
-		super.keyDown(key);
-		repeatTime = kha.Scheduler.time() + 0.4;
-	}
-
-	override function endFrame() {
-		super.endFrame();
-
-		if (kha.Scheduler.time() - repeatTime > 0.05) {
-			repeatTime = kha.Scheduler.time();
-			repeatKey = true;
-		}
-
-		else repeatKey = false;
 	}
 }
 
@@ -311,16 +372,14 @@ class Mouse extends CoordsInput {
 	public function new() {
 		super();
 
-		var m = kha.input.Mouse.get();
-		if (m != null) m.notify(downListener, upListener, moveListener, wheelListener, function() {
+		kha.input.Mouse.get().notify(downListener, upListener, moveListener, wheelListener, function() {
 			ignoreMovement = true; // Ignore movement after the cursor leaves the window to avoid wrong delta
 		});
 
 		// Reset on foreground state
 		kha.System.notifyOnApplicationState(reset, null, null, null, null);
 
-		// Deprecated
-		virtualKeys = ["left" => MouseButton.LEFT, "right" => MouseButton.RIGHT, "middle" => MouseButton.MIDDLE];
+		virtualKeys = [MouseButton.LEFT => "left", MouseButton.RIGHT => "right", MouseButton.MIDDLE => "middle"];
 	}
 
 	public function set_locked(locked: Bool) {
@@ -354,6 +413,24 @@ class Mouse extends CoordsInput {
 
 		return this.hidden;
 	}
+
+	// Keep compatibility
+	public function lock() {
+		locked = true;
+	}
+	
+	public function unlock() {
+		locked = false;
+	}
+
+	public function hide() {
+		hidden = true;
+	}
+
+	public function show() {
+		hidden = false;
+	}
+	// End
 
 	function downListener(button: Int, x: Int, y: Int) {
 		keyDown(button);
@@ -393,11 +470,9 @@ class Pen extends CoordsInput {
 	public function new() {
 		super();
 
-		var p = kha.input.Pen.get();
-		if (p != null) p.notify(downListener, upListener, moveListener);
+		kha.input.Pen.get().notify(downListener, upListener, moveListener);
 
-		// Deprecated
-		virtualKeys = ["tip" => PenButton.TIP];
+		virtualKeys = [PenButton.TIP => "tip"];
 	}
 
 	function downListener(x: Int, y: Int, pressure: Float) {
@@ -425,8 +500,10 @@ class Surface extends Input {
 	public function new(maxTouches = 3) {
 		super();
 
+		#if (kha_android || kha_ios)
 		var s = kha.input.Surface.get();
-		if (s != null) kha.input.Surface.get().notify(touchStartListener, touchEndListener, moveListener);
+		if (s != null) s.notify(touchStartListener, touchEndListener, moveListener);
+		#end
 
 		touches = new Array<Coords2D>();
 		setMaxTouches(maxTouches);
@@ -483,21 +560,21 @@ class Gamepad extends Input {
 	public final rightStick = new GamepadStick();
 	final pressures = new Array<Float>();
 
+	var virtualPressures: Null<Map<String, Float>>;
+
 	public function new(index = 0) {
 		super();
 
-		var g = kha.input.Gamepad.get(index);
-		if (g != null) g.notify(axisListener, buttonListener);
+		kha.input.Gamepad.get(index).notify(axisListener, buttonListener);
 
 		this.index = index;
 
-		// Deprecated
 		virtualKeys = [
-			"cross" => PSButton.CROSS, "circle" => PSButton.CIRCLE, "square" => PSButton.SQUARE, "triangle" => PSButton.TRIANGLE,
-			"l1" => PSButton.L1, "r1" => PSButton.R1, "l2" => PSButton.L2, "r2" => PSButton.R2,
-			"share" => PSButton.SHARE, "options" => PSButton.MENU, "l3" => PSButton.L3, "r3" => PSButton.R3,
-			"up" => PSButton.UP, "down" => PSButton.DOWN, "left" => PSButton.LEFT, "right" => PSButton.RIGHT,
-			"home" => PSButton.HOME, "touchpad" => PSButton.TOUCHPAD
+			PSButton.CROSS => "cross", PSButton.CIRCLE => "circle", PSButton.SQUARE => "square", PSButton.TRIANGLE => "triangle",
+			PSButton.L1 => "l1", PSButton.R1 => "r1", PSButton.L2 => "l2", PSButton.R2 => "r2",
+			PSButton.SHARE => "share", PSButton.MENU => "options", PSButton.L3 => "l3", PSButton.R3 => "r3",
+			PSButton.UP => "up", PSButton.DOWN => "down", PSButton.LEFT => "left", PSButton.RIGHT => "right",
+			PSButton.HOME => "home", PSButton.TOUCHPAD => "touchpad"
 		];
 	}
 
@@ -506,8 +583,8 @@ class Gamepad extends Input {
 		return p != null ? p : 0.0;
 	}
 
-	public function getPressureVirtual(button: String): Float {
-		var p = pressures[virtualKeys.get(button)];
+	public function getVirtualPressure(virtualButton: String): Float {
+		var p = virtualPressures.get(virtualButton);
 		return p != null ? p : 0.0;
 	}
 
@@ -525,6 +602,21 @@ class Gamepad extends Input {
 		else keyUp(button);
 
 		pressures[button] = pressure;
+
+		if (virtualPressures != null) virtualPressures.set(virtualKeys.get(button), pressure);
+	}
+
+	public override function setVirtualKey(keyCode: Int, virtualKey: String) {
+		super.setVirtualKey(keyCode, virtualKey);
+
+		if (virtualPressures == null) {
+			virtualPressures = new Map<String, Float>();
+
+			for (kc => v in virtualKeys) {
+				virtualPressures.set(v, 0.0); // Initialize all existent virtual keys pressures
+			}
+		}
+		else virtualPressures.set(virtualKey, 0.0);
 	}
 
 	override function endFrame() {
@@ -591,15 +683,13 @@ class Sensor {
 
 class Accelerometer extends Sensor {
 	public function new() {
-		var a = kha.input.Sensor.get(kha.input.SensorType.Accelerometer);
-		if (a != null) a.notify(listener);
+		kha.input.Sensor.get(kha.input.SensorType.Accelerometer).notify(listener);
 	}
 }
 
 class Gyroscope extends Sensor {
 	public function new() {
-		var g = kha.input.Sensor.get(kha.input.SensorType.Gyroscope);
-		if (g != null) g.notify(listener);
+		kha.input.Sensor.get(kha.input.SensorType.Gyroscope).notify(listener);
 	}
 }
 
@@ -771,7 +861,7 @@ abstract KeyboardKey(Int) from Int to Int {
 	var SEPARATOR = KeyCode.Separator;
 	var COMMA = KeyCode.Comma; // ,
 	var PERIOD = KeyCode.Period; // .
-	var DECIMAL = KeyCode.Decimal;
+	var DECIMAL = KeyCode.Decimal; // .
 	var COLON = KeyCode.Colon; // :
 	var SEMICOLON = KeyCode.Semicolon; // ;
 	var QUESTION = KeyCode.QuestionMark; // ?
