@@ -58,7 +58,7 @@ class Input {
 		App.notifyOnEndFrame(endFrame);
 		App.notifyOnReset(reset);
 
-		// Force virtual keys initialization to keep backward compatibility
+		// Initialize default virtual key
 		setVirtualKey(0, "");
 	}
 
@@ -67,7 +67,9 @@ class Input {
 		@return Keyboard.
 	*/
 	public static function getKeyboard(): Keyboard {
-		if (keyboard == null) keyboard = new Keyboard();
+		if (keyboard == null)
+			keyboard = new Keyboard();
+
 		return keyboard;
 	}
 
@@ -76,7 +78,9 @@ class Input {
 		@return Mouse.
 	*/
 	public static function getMouse(): Mouse {
-		if (mouse == null) mouse = new Mouse();
+		if (mouse == null)
+			mouse = new Mouse();
+
 		return mouse;
 	}
 
@@ -85,7 +89,9 @@ class Input {
 		@return Pen.
 	*/
 	public static function getPen(): Pen {
-		if (pen == null) pen = new Pen();
+		if (pen == null)
+			pen = new Pen();
+
 		return pen;
 	}
 
@@ -94,10 +100,13 @@ class Input {
 		@return Gamepad.
 	*/
 	public static function getGamepad(index: Int): Null<Gamepad> {
-		if (gamepads == null) gamepads = new haxe.ds.Vector<Null<Gamepad>>(4);
+		if (gamepads == null)
+			gamepads = new haxe.ds.Vector<Null<Gamepad>>(4);
 
 		var g = gamepads[index];
-		if (g == null && index >= 0 && index <= 3) gamepads[index] = new Gamepad(index);
+		if (g == null && index >= 0 && index <= 3)
+			gamepads[index] = new Gamepad(index);
+
 		return g;
 	}
 
@@ -107,7 +116,9 @@ class Input {
 		@return Surface.
 	*/
 	public static function getSurface(maxTouches: Int): Surface {
-		if (surface == null) surface = new Surface(maxTouches);
+		if (surface == null)
+			surface = new Surface(maxTouches);
+
 		return surface;
 	}
 
@@ -116,7 +127,9 @@ class Input {
 		@return Accelerometer.
 	*/
 	public static function getAccelerometer(): Accelerometer {
-		if (accelerometer == null) accelerometer = new Accelerometer();
+		if (accelerometer == null)
+			accelerometer = new Accelerometer();
+
 		return accelerometer;
 	}
 
@@ -125,7 +138,9 @@ class Input {
 		@return Gyroscope.
 	*/
 	public static function getGyroscope(): Gyroscope {
-		if (gyroscope == null) gyroscope = new Gyroscope();
+		if (gyroscope == null)
+			gyroscope = new Gyroscope();
+
 		return gyroscope;
 	}
 
@@ -216,7 +231,7 @@ class Input {
 	}
 
 	/**
-		Get the virtual string representation of a key code. Call this just if some virtual key was defined before!
+		Get the virtual string representation of a key code.
 		If the key code don't have a string representation, `null` is returned.
 		@param	keyCode The key code to get the string representation
 		@return Null<String>.
@@ -226,7 +241,7 @@ class Input {
 	}
 
 	/**
-		Check if a virtual key is just pressed. Call this just if some virtual key was defined before!
+		Check if a virtual key is just pressed.
 		@param	virtualKey A String representing the key code to check.
 		@return	Bool. Returns true if the key starts being pressed.
 	**/
@@ -235,7 +250,7 @@ class Input {
 	}
 
 	/**
-		Check if a virtual key is down. Call this just if some virtual key was defined before!
+		Check if a virtual key is down.
 		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key is down.
 	**/
@@ -244,7 +259,7 @@ class Input {
 	}
 
 	/**
-		Check if a virtual key is just released. Call this just if some virtual key was defined before!
+		Check if a virtual key is just released.
 		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key stops being pressed.
 	**/
@@ -312,7 +327,8 @@ class Input {
 		lastKeyCodeDown = keyCode;
 
 		if (notifyDown != null)
-			for (f in notifyDown) f(keyCode);
+			for (f in notifyDown)
+				f(keyCode);
 	}
 
 	function keyUp(keyCode: Int) {
@@ -329,7 +345,8 @@ class Input {
 		}
 
 		if (notifyUp != null)
-			for (f in notifyUp) f(keyCode);
+			for (f in notifyUp)
+				f(keyCode);
 	}
 
 	function endFrame() {
@@ -473,6 +490,7 @@ class CoordsInput extends Input {
 
 	override function endFrame() {
 		super.endFrame();
+
 		coords.endFrame();
 	}
 }
@@ -575,6 +593,7 @@ class Mouse extends CoordsInput {
 
 	override function endFrame() {
 		super.endFrame();
+
 		wheelDelta = 0;
 	}
 }
@@ -611,6 +630,9 @@ class Pen extends CoordsInput {
 class Surface extends Input {
 	public final touches: Array<Coords2D>;
 	public var maxTouches(default, null): Int;
+	var pinchDistance = 0;
+	var lastPinchDistance = 0;
+	public var pinchDelta(default, null): Int;
 
 	public function new(maxTouches = 3) {
 		super();
@@ -651,29 +673,47 @@ class Surface extends Input {
 	}
 
 	function touchStartListener(touchIndex: Int, x: Int, y: Int) {
-		if (touchIndex > maxTouches) return;
+		if (touchIndex > maxTouches)
+			return;
 
 		keyDown(touchIndex);
 		touches[touchIndex].setPos(x, y);
 	}
 
 	function touchEndListener(touchIndex: Int, x: Int, y: Int) {
-		if (touchIndex > maxTouches) return;
+		if (touchIndex > maxTouches)
+			return;
 
 		keyUp(touchIndex);
 		touches[touchIndex].setPos(x, y);
 	}
 
 	function moveListener(touchIndex: Int, x: Int, y: Int) {
-		if (touchIndex > maxTouches) return;
+		if (touchIndex > maxTouches)
+			return;
 
 		touches[touchIndex].displaceTo(x, y);
+
+		if (touches.length == 2) { // Pinch with two fingers only
+			lastPinchDistance = pinchDistance;
+
+			var touchA = touches[0];
+			var touchB = touches[1];
+			var distanceX = touchA.x - touchA.x;
+			var distanceY = touchB.y - touchB.y;
+			pinchDistance = Std.int(Math.sqrt(distanceX * distanceX + distanceY * distanceY));
+
+			pinchDelta = pinchDistance - lastPinchDistance;
+		}
 	}
 
 	override function endFrame() {
 		super.endFrame();
+
 		for (t in touches)
 			t.endFrame();
+
+		pinchDelta = 0;
 	}
 }
 
@@ -712,7 +752,7 @@ class Gamepad extends Input {
 	}
 
 	/**
-		Get a virtual button pressure from `0.0` to `1.0` depending on the pressure over the button. Call this just if some virtual key was defined before!
+		Get a virtual button pressure from `0.0` to `1.0` depending on the pressure over the button.
 		@param	virtualButton A String representing the virtual button to get its pressure
 		@return	Float.
 	**/
@@ -754,6 +794,7 @@ class Gamepad extends Input {
 
 	override function endFrame() {
 		super.endFrame();
+
 		leftStick.endFrame();
 		rightStick.endFrame();
 	}

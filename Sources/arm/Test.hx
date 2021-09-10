@@ -14,9 +14,10 @@ class Test extends iron.Trait {
 		});
 
 		notifyOnUpdate(function() {
+			var count = 0;
 
 			for (i in 0...500000) {
-				if (k.down("w")) {}
+				if (k.down("w")) { count++; }
 			}
 		});
 	}
