@@ -62,21 +62,37 @@ class Input {
 		setVirtualKey(0, "");
 	}
 
+	/*
+		Get the Keyboard instance. If the keyboard is not registered yet, a new instance is created.
+		@return Keyboard.
+	*/
 	public static function getKeyboard(): Keyboard {
 		if (keyboard == null) keyboard = new Keyboard();
 		return keyboard;
 	}
 
+	/*
+		Get the Mouse instance. If the Mouse instance is not registered yet, a new instance is created.
+		@return Mouse.
+	*/
 	public static function getMouse(): Mouse {
 		if (mouse == null) mouse = new Mouse();
 		return mouse;
 	}
 
+	/*
+		Get the Pen instance. If the Pen instance is not registered yet, a new instance is created.
+		@return Pen.
+	*/
 	public static function getPen(): Pen {
 		if (pen == null) pen = new Pen();
 		return pen;
 	}
 
+	/*
+		Get the Gamepad instance. If the Gamepad instance is not registered yet, a new instance is created.
+		@return Gamepad.
+	*/
 	public static function getGamepad(index: Int): Null<Gamepad> {
 		if (gamepads == null) gamepads = new haxe.ds.Vector<Null<Gamepad>>(4);
 
@@ -85,16 +101,29 @@ class Input {
 		return g;
 	}
 
+	/*
+		Get the Surface instance. If the Surface instance is not registered yet, a new instance is created.
+		@param maxTouches An Int representing the maximum touches allowed over the surface.
+		@return Surface.
+	*/
 	public static function getSurface(maxTouches: Int): Surface {
 		if (surface == null) surface = new Surface(maxTouches);
 		return surface;
 	}
 
+	/*
+		Get the Accelerometer instance. If the Accelerometer instance is not registered yet, a new instance is created.
+		@return Accelerometer.
+	*/
 	public static function getAccelerometer(): Accelerometer {
 		if (accelerometer == null) accelerometer = new Accelerometer();
 		return accelerometer;
 	}
 
+	/*
+		Get the Gyroscope instance. If the Gyroscope instance is not registered yet, a new instance is created.
+		@return Gyroscope.
+	*/
 	public static function getGyroscope(): Gyroscope {
 		if (gyroscope == null) gyroscope = new Gyroscope();
 		return gyroscope;
