@@ -1,9 +1,8 @@
 
 package libs;
 
-import kha.input.KeyCode;
-
 import iron.App;
+import kha.input.KeyCode;
 
 /*
 	Refactored Input Class. Now it is more extendable and maintainable.
@@ -18,25 +17,15 @@ import iron.App;
 	Fixed mouse movement delta when leave / enter the window. The fix only works for hmtl5, HL/C and hxcpp.
 	Repeat method is avaiable for all inputs.
 	Added anyStarted, anyDown and anyReleased methods.
+	Added docs
 */
 
 /*
-	Add pinch
-	Match previous field names: mouse, gamepad sticks, etc.
-	mouse right button in android
-	Add deprecate notice where needed
-	Make mouse "compatible" with surface depending on target
-	Add docs
-	Find way to handle left / right modifier keys
-
-*/
-
-/*
-	Example usage of virtual button
-		keyboard.setVirtual("my_key", "e");
-		mouse.setVirtual("my_key", "left");
-		// ...
-		if (Input.getVirtualButton("my_key").started) {}
+	Add pinch *
+	Mouse right button in android *
+	Make mouse "compatible" with surface depending on target *
+	Use assert (?)
+	Add deprecate notice where needed (?)
 */
 class Input {
 	static var keyboard: Null<Keyboard>;
@@ -52,12 +41,15 @@ class Input {
 	final downKeyCodes = new Array<Int>();
 	final releasedKeyCodes = new Array<Int>();
 
+	var notifyDown: Null<Array<Int -> Void>>;
+	var notifyUp: Null<Array<Int -> Void>>;
+
 	var virtualKeys: Null<Map<Int, String>>;
 	var startedVirtualKeys: Array<String>;
 	var downVirtualKeys: Array<String>;
 	var releasedVirtualKeys: Array<String>;
 
-	public var lastKeyCodeDown: Null<Int>;
+	public var lastKeyCodeDown(default, null): Int;
 
 	var repeatKey = false;
 	var repeatTime = 0.0;
@@ -108,35 +100,82 @@ class Input {
 		return gyroscope;
 	}
 
+	/**
+		Check if a key is just pressed.
+		@param	keyCode An Int representing the key code to check.
+		@return	Bool. Returns true if the key starts being pressed.
+	**/
 	public inline function newStarted(keyCode = 0): Bool {
 		return startedKeyCodes.contains(keyCode);
 	}
 
+	/**
+		Check if a key code is pressed.
+		@param	keyCode An Int representing the key code to check.
+		@return	Bool. Returns true if the key is down.
+	**/
 	public inline function newDown(keyCode = 0): Bool {
 		return downKeyCodes.contains(keyCode);
 	}
 
+	/**
+		Check if a key code if just released.
+		@param	keyCode An Int representing the key code to check.
+		@return	Bool. Returns true if the key stops being pressed.
+	**/
 	public inline function newReleased(keyCode = 0): Bool {
 		return releasedKeyCodes.contains(keyCode);
 	}
 
-	public function newRepeat(keyCode: Int): Bool {
+	/**
+		Check if a key code is just pressed inside the repeat interval.
+		@param	keyCode An Int representing the key code to check.
+		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
+	**/
+	public function startedRepeat(keyCode: Int): Bool {
 		return newStarted(keyCode) || (repeatKey && newDown(keyCode));
 	}
 
+	/**
+		Check if a key code is just released inside the repeat interval.
+		@param	keyCode An Int representing the key code to check.
+		@return	Bool. Returns true if the key stops being pressed inside the repeat interval.
+	**/
+	public function releasedRepeat(keyCode: Int): Bool {
+		return newReleased(keyCode) || (repeatKey && newReleased(keyCode));
+	}
+
+	/**
+		Check if any key is just pressed.
+		@return	Bool. Returns true if any key starts being pressed.
+	**/
 	public inline function anyStarted(): Bool {
 		return startedKeyCodes.length > 0;
 	}
 
+	/**
+		Check if any key is down.
+		@return	Bool. Returns true if any key is pressed.
+	**/
 	public inline function anyDown(): Bool {
 		return downKeyCodes.length > 0;
 	}
 
+	/**
+		Check if any key is just released.
+		@return	Bool. Returns true if any key stops being pressed.
+	**/
 	public inline function anyReleased(): Bool {
 		return releasedKeyCodes.length > 0;
 	}
 
-	public function setVirtualKey(keyCode: Int, virtualKey: String) {
+	/**
+		Set the virtual string representation of a key code.
+		@param	keyCode The key code to be virtualized
+		@param virtualKey A String to represent the key code
+		@return Void.
+	**/
+	public function setVirtualKey(keyCode: Int, virtualKey: String): Void {
 		if (virtualKeys == null) {
 			virtualKeys = new Map<Int, String>();
 			startedVirtualKeys = new Array<String>();
@@ -147,30 +186,70 @@ class Input {
 		virtualKeys.set(keyCode, virtualKey);
 	}
 
+	/**
+		Get the virtual string representation of a key code. Call this just if some virtual key was defined before!
+		If the key code don't have a string representation, `null` is returned.
+		@param	keyCode The key code to get the string representation
+		@return Null<String>.
+	**/
+	public function getVirtualKey(keyCode: Int): Null<String> {
+		return virtualKeys.get(keyCode);
+	}
+
+	/**
+		Check if a virtual key is just pressed. Call this just if some virtual key was defined before!
+		@param	virtualKey An String representing the key code to check.
+		@return	Bool. Returns true if the key starts being pressed.
+	**/
 	public inline function startedVirtual(virtualKey: String): Bool {
 		return startedVirtualKeys.contains(virtualKey);
 	}
 
+	/**
+		Check if a virtual key is down. Call this just if some virtual key was defined before!
+		@param	virtualKey An String representing the virtual key to check.
+		@return	Bool. Returns true if the key is down.
+	**/
 	public inline function downVirtual(virtualKey: String): Bool {
 		return downVirtualKeys.contains(virtualKey);
 	}
 
+	/**
+		Check if a virtual key is just released. Call this just if some virtual key was defined before!
+		@param	virtualKey An String representing the virtual key to check.
+		@return	Bool. Returns true if the key stops being pressed.
+	**/
 	public inline function releasedVirtual(virtualKey: String): Bool {
 		return releasedVirtualKeys.contains(virtualKey);
 	}
 
-	public function repeatVirtual(virtualKey: String): Bool {
+	/**
+		Check if a virtual key is just pressed inside the repeat interval.
+		@param	virtualKey An String representing the virtual key to check.
+		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
+	**/
+	public function startedRepeatVirtual(virtualKey: String): Bool {
 		return startedVirtual(virtualKey) || (repeatKey && downVirtual(virtualKey));
+	}
+
+	/**
+		Check if a virtual key is just released inside the repeat interval.
+		@param	virtualKey An String representing the virtual key to check.
+		@return	Bool. Returns true if the key stops being pressed inside the repeat interval.
+	**/
+	public function releasedRepeatVirtual(virtualKey: String): Bool {
+		return releasedVirtual(virtualKey) || (repeatKey && downVirtual(virtualKey));
 	}
 
 	// Keep compatibility
 	public function repeat(virtualKey: String): Bool {
-		return repeatVirtual(virtualKey);
+		return startedRepeatVirtual(virtualKey);
 	}
 
 	public inline function setVirtual(virtualKey: String, key: String) {
 		for (kc => v in virtualKeys)
-			if (v == key) setVirtualKey(kc, virtualKey);
+			if (v == key)
+				setVirtualKey(kc, virtualKey);
 	}
 
 	public inline function started(virtualKey = ""): Bool {
@@ -202,6 +281,9 @@ class Input {
 		repeatTime = kha.Scheduler.time() + 0.4;
 
 		lastKeyCodeDown = keyCode;
+
+		if (notifyDown != null)
+			for (f in notifyDown) f(keyCode);
 	}
 
 	function keyUp(keyCode: Int) {
@@ -216,6 +298,9 @@ class Input {
 				releasedVirtualKeys.push(str);
 			}
 		}
+
+		if (notifyUp != null)
+			for (f in notifyUp) f(keyCode);
 	}
 
 	function endFrame() {
@@ -239,7 +324,8 @@ class Input {
 	function reset() {
 		downKeyCodes.resize(0);
 
-		if (virtualKeys != null) downVirtualKeys.resize(0);
+		if (virtualKeys != null)
+			downVirtualKeys.resize(0);
 
 		endFrame();
 	}
@@ -249,8 +335,7 @@ class Keyboard extends Input {
 	public function new() {
 		super();
 
-		var k = kha.input.Keyboard.get();
-		if (k != null) k.notify(keyDown, keyUp);
+		kha.input.Keyboard.get().notify(keyDown, keyUp);
 
 		virtualKeys = [
 			KeyboardKey.KEY_A => "a", KeyboardKey.KEY_B => "b", KeyboardKey.KEY_C => "c", KeyboardKey.KEY_D => "d",
@@ -355,7 +440,7 @@ class CoordsInput extends Input {
 	public inline function get_viewX() { return coords.viewX; }
 	public inline function get_viewY() { return coords.viewY; }
 	public inline function get_blockMovement() { return coords.blockMovement; }
-	public inline function set_blockMovement(value: Bool) { return coords.blockMovement = value; }
+	public inline function set_blockMovement(block: Bool) { return coords.blockMovement = block; }
 
 	override function endFrame() {
 		super.endFrame();
@@ -388,11 +473,12 @@ class Mouse extends CoordsInput {
 		if (khaMouse.canLock()) {
 			if (locked) {
 				khaMouse.lock();
-				ignoreMovement = this.locked = true; // Ignore movement after the cursor is locked to avoid wrong delta
-
-			} else {
+				this.locked =  this.hidden = true;
+				ignoreMovement = true;  // Ignore movement after the cursor is locked to avoid wrong delta
+			}
+			else {
 				khaMouse.unlock();
-				this.locked = false;
+				this.locked = this.hidden = false;
 			}
 		}
 
@@ -406,7 +492,8 @@ class Mouse extends CoordsInput {
 			khaMouse.hideSystemCursor();
 			this.hidden = true;
 		
-		} else {
+		}
+		else {
 			khaMouse.showSystemCursor();
 			this.hidden = false;
 		}
@@ -444,12 +531,11 @@ class Mouse extends CoordsInput {
 
 	function moveListener(x: Int, y: Int, movementX: Int, movementY: Int) {
 		if (ignoreMovement) ignoreMovement = blockMovement; // Keep ignoring movement case it will be blocked later. If false only the position is set
-
 		else if (!locked) {
 			coords.displaceTo(x, y); // Set position and movement if movement is not ignored. Everything is done
 			return;
-
-		} else coords.setMovement(movementX, movementY); // Set movement if the movement is not ignored. Position must be set later
+		}
+		else coords.setMovement(movementX, movementY); // Set movement if the movement is not ignored. Position must be set later
 
 		coords.setPos(x, y);
 	}
@@ -509,17 +595,26 @@ class Surface extends Input {
 		setMaxTouches(maxTouches);
 	}
 
+	/**
+		Get the coords of a touch.
+		@param	touchIndex An Int representing touch order to get the coords. First touch is 0, second touch is 1...
+		@return	Coords2D. Avaiable fields: x, y, movementX, movementY, moved and blockMovement
+	**/
 	public function getTouchCoords(touchIndex: Int): Null<Coords2D> {
 		return touches[touchIndex];
 	}
 
+	/**
+		Set the maximum number of touches.
+		@param	maxTouches An Int representing the maximum number of touches
+		@return	Int.
+	**/
 	public function setMaxTouches(maxTouches: Int): Int {
 		if (maxTouches > touches.length) {
-			for (i in touches.length...maxTouches) {
+			for (i in touches.length...maxTouches)
 				touches.push(new Coords2D());
-			}
-		
-		} else if (maxTouches < touches.length) {
+		}
+		else if (maxTouches < touches.length) {
 			touches.resize(maxTouches);
 		}
 
@@ -548,9 +643,8 @@ class Surface extends Input {
 
 	override function endFrame() {
 		super.endFrame();
-		for (t in touches) {
+		for (t in touches)
 			t.endFrame();
-		}
 	}
 }
 
@@ -565,9 +659,9 @@ class Gamepad extends Input {
 	public function new(index = 0) {
 		super();
 
-		kha.input.Gamepad.get(index).notify(axisListener, buttonListener);
-
 		this.index = index;
+
+		kha.input.Gamepad.get(index).notify(axisListener, buttonListener);
 
 		virtualKeys = [
 			PSButton.CROSS => "cross", PSButton.CIRCLE => "circle", PSButton.SQUARE => "square", PSButton.TRIANGLE => "triangle",
@@ -578,11 +672,21 @@ class Gamepad extends Input {
 		];
 	}
 
+	/**
+		Get a button code pressure from `0.0` to `1.0` depending on the pressure over the button.
+		@param	button An Int representing the button code to get its pressure
+		@return	Float.
+	**/
 	public function getPressure(button: Int): Float {
 		var p = pressures[button];
 		return p != null ? p : 0.0;
 	}
 
+	/**
+		Get a virtual button pressure from `0.0` to `1.0` depending on the pressure over the button. Call this just if some virtual key was defined before!
+		@param	virtualButton An String representing the virtual button to get its pressure
+		@return	Float.
+	**/
 	public function getVirtualPressure(virtualButton: String): Float {
 		var p = virtualPressures.get(virtualButton);
 		return p != null ? p : 0.0;
@@ -603,7 +707,8 @@ class Gamepad extends Input {
 
 		pressures[button] = pressure;
 
-		if (virtualPressures != null) virtualPressures.set(virtualKeys.get(button), pressure);
+		if (virtualPressures != null)
+			virtualPressures.set(virtualKeys.get(button), pressure);
 	}
 
 	public override function setVirtualKey(keyCode: Int, virtualKey: String) {
@@ -612,9 +717,8 @@ class Gamepad extends Input {
 		if (virtualPressures == null) {
 			virtualPressures = new Map<String, Float>();
 
-			for (kc => v in virtualKeys) {
+			for (kc => v in virtualKeys)
 				virtualPressures.set(v, 0.0); // Initialize all existent virtual keys pressures
-			}
 		}
 		else virtualPressures.set(virtualKey, 0.0);
 	}
@@ -750,7 +854,7 @@ abstract PSButton (Int) from Int to Int {
 
 @:enum
 abstract KeyboardKey(Int) from Int to Int {
-	var BACK = KeyCode.Back; // Android
+	var BACK = KeyCode.Back; // Android RMB
 
 	var KEY_A = KeyCode.A;
 	var KEY_B = KeyCode.B;
