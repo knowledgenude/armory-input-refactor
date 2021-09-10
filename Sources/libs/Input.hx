@@ -192,13 +192,13 @@ class Input {
 		@param	keyCode The key code to get the string representation
 		@return Null<String>.
 	**/
-	public function getVirtualKey(keyCode: Int): Null<String> {
+	public inline function getVirtualKey(keyCode: Int): Null<String> {
 		return virtualKeys.get(keyCode);
 	}
 
 	/**
 		Check if a virtual key is just pressed. Call this just if some virtual key was defined before!
-		@param	virtualKey An String representing the key code to check.
+		@param	virtualKey A String representing the key code to check.
 		@return	Bool. Returns true if the key starts being pressed.
 	**/
 	public inline function startedVirtual(virtualKey: String): Bool {
@@ -207,7 +207,7 @@ class Input {
 
 	/**
 		Check if a virtual key is down. Call this just if some virtual key was defined before!
-		@param	virtualKey An String representing the virtual key to check.
+		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key is down.
 	**/
 	public inline function downVirtual(virtualKey: String): Bool {
@@ -216,7 +216,7 @@ class Input {
 
 	/**
 		Check if a virtual key is just released. Call this just if some virtual key was defined before!
-		@param	virtualKey An String representing the virtual key to check.
+		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key stops being pressed.
 	**/
 	public inline function releasedVirtual(virtualKey: String): Bool {
@@ -225,7 +225,7 @@ class Input {
 
 	/**
 		Check if a virtual key is just pressed inside the repeat interval.
-		@param	virtualKey An String representing the virtual key to check.
+		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
 	**/
 	public function startedRepeatVirtual(virtualKey: String): Bool {
@@ -234,7 +234,7 @@ class Input {
 
 	/**
 		Check if a virtual key is just released inside the repeat interval.
-		@param	virtualKey An String representing the virtual key to check.
+		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key stops being pressed inside the repeat interval.
 	**/
 	public function releasedRepeatVirtual(virtualKey: String): Bool {
@@ -338,33 +338,33 @@ class Keyboard extends Input {
 		kha.input.Keyboard.get().notify(keyDown, keyUp);
 
 		virtualKeys = [
-			KeyboardKey.KEY_A => "a", KeyboardKey.KEY_B => "b", KeyboardKey.KEY_C => "c", KeyboardKey.KEY_D => "d",
-			KeyboardKey.KEY_E => "e", KeyboardKey.KEY_F => "f", KeyboardKey.KEY_G => "g", KeyboardKey.KEY_H => "h",
-			KeyboardKey.KEY_I => "i", KeyboardKey.KEY_J => "j", KeyboardKey.KEY_K => "k", KeyboardKey.KEY_L => "l",
-			KeyboardKey.KEY_M => "m", KeyboardKey.KEY_N => "n", KeyboardKey.KEY_O => "o", KeyboardKey.KEY_P => "p",
-			KeyboardKey.KEY_Q => "q", KeyboardKey.KEY_R => "r", KeyboardKey.KEY_S => "s", KeyboardKey.KEY_T => "t",
-			KeyboardKey.KEY_U => "u", KeyboardKey.KEY_V => "v", KeyboardKey.KEY_W => "w", KeyboardKey.KEY_X => "x",
-			KeyboardKey.KEY_Y => "y", KeyboardKey.KEY_Z => "z", KeyboardKey.KEY_0 => "0", KeyboardKey.KEY_1 => "1",
-			KeyboardKey.KEY_2 => "2", KeyboardKey.KEY_3 => "3", KeyboardKey.KEY_4 => "4", KeyboardKey.KEY_5 => "5",
-			KeyboardKey.KEY_6 => "6", KeyboardKey.KEY_7 => "7", KeyboardKey.KEY_8 => "8", KeyboardKey.KEY_9 => "9",
-			KeyboardKey.SPACE => "space", KeyboardKey.BACKSPACE => "backspace", KeyboardKey.TAB => "tab", KeyboardKey.ENTER => "enter",
-			KeyboardKey.SHIFT => "shift", KeyboardKey.CTRL => "control", KeyboardKey.ALT => "alt", KeyboardKey.WIN => "win",
-			KeyboardKey.ESC => "escape", KeyboardKey.DELETE => "delete", KeyboardKey.UP => "up", KeyboardKey.DOWN => "down",
-			KeyboardKey.LEFT => "left", KeyboardKey.RIGHT => "right", KeyboardKey.BACK => "back", KeyboardKey.COMMA => ",",
-			KeyboardKey.DECIMAL => ".", KeyboardKey.COLON => ":", KeyboardKey.SEMICOLON => ";", KeyboardKey.LESS_THAN => "<",
-			KeyboardKey.EQUALS => "=", KeyboardKey.GREATER_THAN => ">", KeyboardKey.QUESTION => "$", KeyboardKey.EXCLAMATION => "!",
-			KeyboardKey.DOUBLE_QUOTE => '"', KeyboardKey.HASH => "#", KeyboardKey.DOLLAR => "$", KeyboardKey.PERCENT => "%",
-			KeyboardKey.AMPERSAND => "&", KeyboardKey.UNDERSCORE => "_", KeyboardKey.OPEN_PARENTESIS => "(", KeyboardKey.CLOSE_PARENTESIS => ")",
-			KeyboardKey.ASTERISK => "*", KeyboardKey.PIPE => "|", KeyboardKey.OPEN_CURLY_BRACKET => "{", KeyboardKey.CLOSE_CURLY_BRACKET => "}",
-			KeyboardKey.OPEN_BRACKET => "[", KeyboardKey.CLOSE_BRACKET => "]", KeyboardKey.TILDE => "~", KeyboardKey.BACK_QUOTE => "`",
-			KeyboardKey.SLASH => "/", KeyboardKey.BACK_SLASH => "\\",  KeyboardKey.AT => "@", KeyboardKey.ADD => "+",
-			KeyboardKey.HYPHEN => "-", KeyboardKey.F1 => "f1", KeyboardKey.F2 => "f2", KeyboardKey.F3 => "f3",
-			KeyboardKey.F4 => "f4", KeyboardKey.F5 => "f5", KeyboardKey.F6 => "f6", KeyboardKey.F7 => "f7",
-			KeyboardKey.F8 => "f8", KeyboardKey.F9 => "f9", KeyboardKey.F10 => "f10", KeyboardKey.F11 => "f11",
-			KeyboardKey.F12 => "f12", KeyboardKey.PLUS => "+", KeyboardKey.SUB => "-", KeyboardKey.NUM_0 => "0",
-			KeyboardKey.NUM_1 => "1", KeyboardKey.NUM_2 => "2", KeyboardKey.NUM_3 => "3", KeyboardKey.NUM_4 => "4",
-			KeyboardKey.NUM_5 => "5", KeyboardKey.NUM_6 => "6", KeyboardKey.NUM_7 => "7", KeyboardKey.NUM_8 => "8",
-			KeyboardKey.NUM_9 => "9"
+			KeyboardEnum.KEY_A => "a", KeyboardEnum.KEY_B => "b", KeyboardEnum.KEY_C => "c", KeyboardEnum.KEY_D => "d",
+			KeyboardEnum.KEY_E => "e", KeyboardEnum.KEY_F => "f", KeyboardEnum.KEY_G => "g", KeyboardEnum.KEY_H => "h",
+			KeyboardEnum.KEY_I => "i", KeyboardEnum.KEY_J => "j", KeyboardEnum.KEY_K => "k", KeyboardEnum.KEY_L => "l",
+			KeyboardEnum.KEY_M => "m", KeyboardEnum.KEY_N => "n", KeyboardEnum.KEY_O => "o", KeyboardEnum.KEY_P => "p",
+			KeyboardEnum.KEY_Q => "q", KeyboardEnum.KEY_R => "r", KeyboardEnum.KEY_S => "s", KeyboardEnum.KEY_T => "t",
+			KeyboardEnum.KEY_U => "u", KeyboardEnum.KEY_V => "v", KeyboardEnum.KEY_W => "w", KeyboardEnum.KEY_X => "x",
+			KeyboardEnum.KEY_Y => "y", KeyboardEnum.KEY_Z => "z", KeyboardEnum.KEY_0 => "0", KeyboardEnum.KEY_1 => "1",
+			KeyboardEnum.KEY_2 => "2", KeyboardEnum.KEY_3 => "3", KeyboardEnum.KEY_4 => "4", KeyboardEnum.KEY_5 => "5",
+			KeyboardEnum.KEY_6 => "6", KeyboardEnum.KEY_7 => "7", KeyboardEnum.KEY_8 => "8", KeyboardEnum.KEY_9 => "9",
+			KeyboardEnum.SPACE => "space", KeyboardEnum.BACKSPACE => "backspace", KeyboardEnum.TAB => "tab", KeyboardEnum.ENTER => "enter",
+			KeyboardEnum.SHIFT => "shift", KeyboardEnum.CTRL => "control", KeyboardEnum.ALT => "alt", KeyboardEnum.WIN => "win",
+			KeyboardEnum.ESC => "escape", KeyboardEnum.DELETE => "delete", KeyboardEnum.UP => "up", KeyboardEnum.DOWN => "down",
+			KeyboardEnum.LEFT => "left", KeyboardEnum.RIGHT => "right", KeyboardEnum.BACK => "back", KeyboardEnum.COMMA => ",",
+			KeyboardEnum.DECIMAL => ".", KeyboardEnum.COLON => ":", KeyboardEnum.SEMICOLON => ";", KeyboardEnum.LESS_THAN => "<",
+			KeyboardEnum.EQUALS => "=", KeyboardEnum.GREATER_THAN => ">", KeyboardEnum.QUESTION => "$", KeyboardEnum.EXCLAMATION => "!",
+			KeyboardEnum.DOUBLE_QUOTE => '"', KeyboardEnum.HASH => "#", KeyboardEnum.DOLLAR => "$", KeyboardEnum.PERCENT => "%",
+			KeyboardEnum.AMPERSAND => "&", KeyboardEnum.UNDERSCORE => "_", KeyboardEnum.OPEN_PARENTESIS => "(", KeyboardEnum.CLOSE_PARENTESIS => ")",
+			KeyboardEnum.ASTERISK => "*", KeyboardEnum.PIPE => "|", KeyboardEnum.OPEN_CURLY_BRACKET => "{", KeyboardEnum.CLOSE_CURLY_BRACKET => "}",
+			KeyboardEnum.OPEN_BRACKET => "[", KeyboardEnum.CLOSE_BRACKET => "]", KeyboardEnum.TILDE => "~", KeyboardEnum.BACK_QUOTE => "`",
+			KeyboardEnum.SLASH => "/", KeyboardEnum.BACK_SLASH => "\\",  KeyboardEnum.AT => "@", KeyboardEnum.ADD => "+",
+			KeyboardEnum.HYPHEN => "-", KeyboardEnum.F1 => "f1", KeyboardEnum.F2 => "f2", KeyboardEnum.F3 => "f3",
+			KeyboardEnum.F4 => "f4", KeyboardEnum.F5 => "f5", KeyboardEnum.F6 => "f6", KeyboardEnum.F7 => "f7",
+			KeyboardEnum.F8 => "f8", KeyboardEnum.F9 => "f9", KeyboardEnum.F10 => "f10", KeyboardEnum.F11 => "f11",
+			KeyboardEnum.F12 => "f12", KeyboardEnum.PLUS => "+", KeyboardEnum.SUB => "-", KeyboardEnum.NUM_0 => "0",
+			KeyboardEnum.NUM_1 => "1", KeyboardEnum.NUM_2 => "2", KeyboardEnum.NUM_3 => "3", KeyboardEnum.NUM_4 => "4",
+			KeyboardEnum.NUM_5 => "5", KeyboardEnum.NUM_6 => "6", KeyboardEnum.NUM_7 => "7", KeyboardEnum.NUM_8 => "8",
+			KeyboardEnum.NUM_9 => "9"
 		];
 	}
 }
@@ -464,7 +464,7 @@ class Mouse extends CoordsInput {
 		// Reset on foreground state
 		kha.System.notifyOnApplicationState(reset, null, null, null, null);
 
-		virtualKeys = [MouseButton.LEFT => "left", MouseButton.RIGHT => "right", MouseButton.MIDDLE => "middle"];
+		virtualKeys = [MouseEnum.LEFT => "left", MouseEnum.RIGHT => "right", MouseEnum.MIDDLE => "middle"];
 	}
 
 	public function set_locked(locked: Bool) {
@@ -558,7 +558,7 @@ class Pen extends CoordsInput {
 
 		kha.input.Pen.get().notify(downListener, upListener, moveListener);
 
-		virtualKeys = [PenButton.TIP => "tip"];
+		virtualKeys = [PenEnum.TIP => "tip"];
 	}
 
 	function downListener(x: Int, y: Int, pressure: Float) {
@@ -596,9 +596,9 @@ class Surface extends Input {
 	}
 
 	/**
-		Get the coords of a touch.
+		Get the coordinates of a touch containing the fields: x, y, movementX, movementY, moved and blockMovement.
 		@param	touchIndex An Int representing touch order to get the coords. First touch is 0, second touch is 1...
-		@return	Coords2D. Avaiable fields: x, y, movementX, movementY, moved and blockMovement
+		@return	Coords2D.
 	**/
 	public function getTouchCoords(touchIndex: Int): Null<Coords2D> {
 		return touches[touchIndex];
@@ -664,11 +664,11 @@ class Gamepad extends Input {
 		kha.input.Gamepad.get(index).notify(axisListener, buttonListener);
 
 		virtualKeys = [
-			PSButton.CROSS => "cross", PSButton.CIRCLE => "circle", PSButton.SQUARE => "square", PSButton.TRIANGLE => "triangle",
-			PSButton.L1 => "l1", PSButton.R1 => "r1", PSButton.L2 => "l2", PSButton.R2 => "r2",
-			PSButton.SHARE => "share", PSButton.MENU => "options", PSButton.L3 => "l3", PSButton.R3 => "r3",
-			PSButton.UP => "up", PSButton.DOWN => "down", PSButton.LEFT => "left", PSButton.RIGHT => "right",
-			PSButton.HOME => "home", PSButton.TOUCHPAD => "touchpad"
+			PSEnum.CROSS => "cross", PSEnum.CIRCLE => "circle", PSEnum.SQUARE => "square", PSEnum.TRIANGLE => "triangle",
+			PSEnum.L1 => "l1", PSEnum.R1 => "r1", PSEnum.L2 => "l2", PSEnum.R2 => "r2",
+			PSEnum.SHARE => "share", PSEnum.MENU => "options", PSEnum.L3 => "l3", PSEnum.R3 => "r3",
+			PSEnum.UP => "up", PSEnum.DOWN => "down", PSEnum.LEFT => "left", PSEnum.RIGHT => "right",
+			PSEnum.HOME => "home", PSEnum.TOUCHPAD => "touchpad"
 		];
 	}
 
@@ -684,7 +684,7 @@ class Gamepad extends Input {
 
 	/**
 		Get a virtual button pressure from `0.0` to `1.0` depending on the pressure over the button. Call this just if some virtual key was defined before!
-		@param	virtualButton An String representing the virtual button to get its pressure
+		@param	virtualButton A String representing the virtual button to get its pressure
 		@return	Float.
 	**/
 	public function getVirtualPressure(virtualButton: String): Float {
@@ -798,19 +798,19 @@ class Gyroscope extends Sensor {
 }
 
 @:enum
-abstract PenButton(Int) from Int to Int {
+abstract PenEnum(Int) from Int to Int {
 	var TIP;
 }
 
 @:enum
-abstract MouseButton(Int) from Int to Int {
+abstract MouseEnum(Int) from Int to Int {
 	var LEFT;
 	var MIDDLE;
 	var RIGHT;
 }
 
 @:enum
-abstract XboxButton(Int) from Int to Int {
+abstract XboxEnum(Int) from Int to Int {
 	var BUTTON_A;
 	var BUTTON_B;
 	var BUTTON_X;
@@ -831,7 +831,7 @@ abstract XboxButton(Int) from Int to Int {
 }
 
 @:enum
-abstract PSButton (Int) from Int to Int {
+abstract PSEnum (Int) from Int to Int {
 	var CROSS;
 	var CIRCLE;
 	var SQUARE;
@@ -853,7 +853,7 @@ abstract PSButton (Int) from Int to Int {
 }
 
 @:enum
-abstract KeyboardKey(Int) from Int to Int {
+abstract KeyboardEnum(Int) from Int to Int {
 	var BACK = KeyCode.Back; // Android RMB
 
 	var KEY_A = KeyCode.A;
