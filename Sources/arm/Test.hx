@@ -4,7 +4,7 @@ import libs.Input as NewInput;
 import iron.system.Input;
 
 class Test extends iron.Trait {
-	var k = NewInput.getKeyboard();
+	var k = Input.getKeyboard();
 
 	public function new() {
 		super();
@@ -14,10 +14,8 @@ class Test extends iron.Trait {
 		});
 
 		notifyOnUpdate(function() {
-			var count = 0;
-
-			for (i in 0...500000) {
-				if (k.down("w")) { count++; }
+			if (k.repeat("w")) {
+				trace("repeat");
 			}
 		});
 	}

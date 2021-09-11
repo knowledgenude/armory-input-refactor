@@ -150,7 +150,7 @@ class Input {
 	}
 
 	/**
-		Check if a key code is pressed.
+		Check if a key is pressed.
 		@param	keyCode An Int representing the key code to check.
 		@return	Bool. Returns true if the key is down.
 	**/
@@ -159,7 +159,7 @@ class Input {
 	}
 
 	/**
-		Check if a key code if just released.
+		Check if a key if just released.
 		@param	keyCode An Int representing the key code to check.
 		@return	Bool. Returns true if the key stops being pressed.
 	**/
@@ -168,21 +168,12 @@ class Input {
 	}
 
 	/**
-		Check if a key code is just pressed inside the repeat interval.
+		Check every repeat interval if a key is pressed.
 		@param	keyCode An Int representing the key code to check.
 		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
 	**/
-	public function startedRepeat(keyCode: Int): Bool {
+	public function newRepeat(keyCode: Int): Bool {
 		return newStarted(keyCode) || (repeatKey && newDown(keyCode));
-	}
-
-	/**
-		Check if a key code is just released inside the repeat interval.
-		@param	keyCode An Int representing the key code to check.
-		@return	Bool. Returns true if the key stops being pressed inside the repeat interval.
-	**/
-	public function releasedRepeat(keyCode: Int): Bool {
-		return newReleased(keyCode) || (repeatKey && newReleased(keyCode));
 	}
 
 	/**
@@ -202,7 +193,7 @@ class Input {
 	}
 
 	/**
-		Check if any key is just released.
+		Check if any key was just released.
 		@return	Bool. Returns true if any key stops being pressed.
 	**/
 	public inline function anyReleased(): Bool {
@@ -210,7 +201,7 @@ class Input {
 	}
 
 	/**
-		Set the virtual string representation of a key code.
+		Set the virtual string representation of a key. Multiple representations can be set for a same key.
 		@param	keyCode The key code to be virtualized
 		@param virtualKey A String to represent the key code
 		@return Void.
@@ -227,7 +218,7 @@ class Input {
 	}
 
 	/**
-		Get the virtual string representation of a key code.
+		Get the string representation of a key.
 		If the key code don't have a string representation, `null` is returned.
 		@param	keyCode The key code to get the string representation
 		@return Null<String>.
@@ -255,7 +246,7 @@ class Input {
 	}
 
 	/**
-		Check if a virtual key is just released.
+		Check if a virtual key was just released.
 		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key stops being pressed.
 	**/
@@ -264,34 +255,15 @@ class Input {
 	}
 
 	/**
-		Check if a virtual key is just pressed inside the repeat interval.
+		Check every repeat interval if a virtual key is pressed.
 		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
 	**/
-	public function startedRepeatVirtual(virtualKey: String): Bool {
+	public function repeatVirtual(virtualKey: String): Bool {
 		return startedVirtual(virtualKey) || (repeatKey && downVirtual(virtualKey));
 	}
 
-	/**
-		Check if a virtual key is just released inside the repeat interval.
-		@param	virtualKey A String representing the virtual key to check.
-		@return	Bool. Returns true if the key stops being pressed inside the repeat interval.
-	**/
-	public function releasedRepeatVirtual(virtualKey: String): Bool {
-		return releasedVirtual(virtualKey) || (repeatKey && downVirtual(virtualKey));
-	}
-
 	// Keep compatibility
-	public function repeat(virtualKey: String): Bool {
-		return startedRepeatVirtual(virtualKey);
-	}
-
-	public inline function setVirtual(virtualKey: String, key: String) {
-		for (kc => v in virtualKeys)
-			if (v == key)
-				setVirtualKey(kc, virtualKey);
-	}
-
 	public inline function started(virtualKey = ""): Bool {
 		return startedVirtual(virtualKey);
 	}
@@ -302,6 +274,16 @@ class Input {
 
 	public inline function released(virtualKey = ""): Bool {
 		return releasedVirtual(virtualKey);
+	}
+
+	public function repeat(virtualKey: String): Bool {
+		return repeatVirtual(virtualKey);
+	}
+
+	public inline function setVirtual(virtualKey: String, key: String) {
+		for (kc => v in virtualKeys)
+			if (v == key)
+				setVirtualKey(kc, virtualKey);
 	}
 	// End
 
@@ -346,7 +328,7 @@ class Input {
 	}
 
 	function endFrame() {
-		if (anyDown()) { // No need to resize if no key is down
+		if (anyDown()) { // No need to resize every frame if no key is down
 			startedKeyCodes.resize(0);
 			releasedKeyCodes.resize(0);
 
@@ -418,7 +400,6 @@ class Keyboard extends Input {
 			if (mouse != null && !mouse.newDown(MouseEnum.LEFT))
 				@:privateAccess mouse.downListener(MouseEnum.LEFT, mouse.x, mouse.y);
 		#end
-
 	}
 }
 
@@ -749,17 +730,17 @@ class Gamepad extends Input {
 	}
 
 	/**
-		Get a button code pressure from `0.0` to `1.0` depending on the pressure over the button.
-		@param	button An Int representing the button code to get its pressure
+		Get the pressure value that is over a button. The pressure value can go from `0.0` to `1.0`.
+		@param	buttonCode An Int representing the button code to get its pressure
 		@return	Float.
 	**/
-	public function getPressure(button: Int): Float {
-		var p = pressures[button];
+	public function getPressure(buttonCode: Int): Float {
+		var p = pressures[buttonCode];
 		return p != null ? p : 0.0;
 	}
 
 	/**
-		Get a virtual button pressure from `0.0` to `1.0` depending on the pressure over the button.
+		Get the pressure value that is over a virtual button. The pressure value can go from `0.0` to `1.0`.
 		@param	virtualButton A String representing the virtual button to get its pressure
 		@return	Float.
 	**/
