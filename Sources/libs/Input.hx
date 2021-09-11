@@ -21,11 +21,7 @@ import kha.input.KeyCode;
 */
 
 /*
-	Add pinch *
-	Mouse right button in android *
-	Make mouse "compatible" with surface depending on target *
-	Use assert (?)
-	Add deprecate notice where needed (?)
+	Make mouse "compatible" with surface depending on target
 */
 class Input {
 	static var keyboard: Null<Keyboard>;
@@ -384,13 +380,13 @@ class Keyboard extends Input {
 		kha.input.Keyboard.get().notify(keyDown, keyUp);
 
 		virtualKeys = [
-			KeyboardEnum.KEY_A => "a", KeyboardEnum.KEY_B => "b", KeyboardEnum.KEY_C => "c", KeyboardEnum.KEY_D => "d",
-			KeyboardEnum.KEY_E => "e", KeyboardEnum.KEY_F => "f", KeyboardEnum.KEY_G => "g", KeyboardEnum.KEY_H => "h",
-			KeyboardEnum.KEY_I => "i", KeyboardEnum.KEY_J => "j", KeyboardEnum.KEY_K => "k", KeyboardEnum.KEY_L => "l",
-			KeyboardEnum.KEY_M => "m", KeyboardEnum.KEY_N => "n", KeyboardEnum.KEY_O => "o", KeyboardEnum.KEY_P => "p",
-			KeyboardEnum.KEY_Q => "q", KeyboardEnum.KEY_R => "r", KeyboardEnum.KEY_S => "s", KeyboardEnum.KEY_T => "t",
-			KeyboardEnum.KEY_U => "u", KeyboardEnum.KEY_V => "v", KeyboardEnum.KEY_W => "w", KeyboardEnum.KEY_X => "x",
-			KeyboardEnum.KEY_Y => "y", KeyboardEnum.KEY_Z => "z", KeyboardEnum.KEY_0 => "0", KeyboardEnum.KEY_1 => "1",
+			KeyboardEnum.A => "a", KeyboardEnum.B => "b", KeyboardEnum.C => "c", KeyboardEnum.D => "d",
+			KeyboardEnum.E => "e", KeyboardEnum.F => "f", KeyboardEnum.G => "g", KeyboardEnum.H => "h",
+			KeyboardEnum.I => "i", KeyboardEnum.J => "j", KeyboardEnum.K => "k", KeyboardEnum.L => "l",
+			KeyboardEnum.M => "m", KeyboardEnum.N => "n", KeyboardEnum.O => "o", KeyboardEnum.P => "p",
+			KeyboardEnum.Q => "q", KeyboardEnum.R => "r", KeyboardEnum.S => "s", KeyboardEnum.T => "t",
+			KeyboardEnum.U => "u", KeyboardEnum.V => "v", KeyboardEnum.W => "w", KeyboardEnum.X => "x",
+			KeyboardEnum.Y => "y", KeyboardEnum.Z => "z", KeyboardEnum.KEY_0 => "0", KeyboardEnum.KEY_1 => "1",
 			KeyboardEnum.KEY_2 => "2", KeyboardEnum.KEY_3 => "3", KeyboardEnum.KEY_4 => "4", KeyboardEnum.KEY_5 => "5",
 			KeyboardEnum.KEY_6 => "6", KeyboardEnum.KEY_7 => "7", KeyboardEnum.KEY_8 => "8", KeyboardEnum.KEY_9 => "9",
 			KeyboardEnum.SPACE => "space", KeyboardEnum.BACKSPACE => "backspace", KeyboardEnum.TAB => "tab", KeyboardEnum.ENTER => "enter",
@@ -412,6 +408,17 @@ class Keyboard extends Input {
 			KeyboardEnum.NUM_5 => "5", KeyboardEnum.NUM_6 => "6", KeyboardEnum.NUM_7 => "7", KeyboardEnum.NUM_8 => "8",
 			KeyboardEnum.NUM_9 => "9"
 		];
+	}
+
+	override function keyDown(keyCode: Int) {
+		super.keyDown(keyCode);
+
+		#if kha_android_rmb	// Detect right mouse button on Android
+		if (keyCode == KeyboardEnum.BACK)
+			if (mouse != null && !mouse.newDown(MouseEnum.LEFT))
+				@:privateAccess mouse.downListener(MouseEnum.LEFT, mouse.x, mouse.y);
+		#end
+
 	}
 }
 
@@ -881,10 +888,10 @@ abstract MouseEnum(Int) from Int to Int {
 
 @:enum
 abstract XboxEnum(Int) from Int to Int {
-	var BUTTON_A;
-	var BUTTON_B;
-	var BUTTON_X;
-	var BUTTON_Y;
+	var A;
+	var B;
+	var X;
+	var Y;
 	var LB;
 	var RB;
 	var LT;
@@ -926,59 +933,19 @@ abstract PSEnum (Int) from Int to Int {
 abstract KeyboardEnum(Int) from Int to Int {
 	var BACK = KeyCode.Back; // Android RMB
 
-	var KEY_A = KeyCode.A;
-	var KEY_B = KeyCode.B;
-	var KEY_C = KeyCode.C;
-	var KEY_D = KeyCode.D;
-	var KEY_E = KeyCode.E;
-	var KEY_F = KeyCode.F;
-	var KEY_G = KeyCode.G;
-	var KEY_H = KeyCode.H;
-	var KEY_I = KeyCode.I;
-	var KEY_J = KeyCode.J;
-	var KEY_K = KeyCode.K;
-	var KEY_L = KeyCode.L;
-	var KEY_M = KeyCode.M;
-	var KEY_N = KeyCode.N;
-	var KEY_O = KeyCode.O;
-	var KEY_P = KeyCode.P;
-	var KEY_Q = KeyCode.Q;
-	var KEY_R = KeyCode.R;
-	var KEY_S = KeyCode.S;
-	var KEY_T = KeyCode.T;
-	var KEY_U = KeyCode.U;
-	var KEY_V = KeyCode.V;
-	var KEY_W = KeyCode.W;
-	var KEY_X = KeyCode.X;
-	var KEY_Y = KeyCode.Y;
-	var KEY_Z = KeyCode.Z;
-
-	var LEFT = KeyCode.Left;
-	var RIGHT = KeyCode.Right;
-	var UP = KeyCode.Up;
-	var DOWN = KeyCode.Down;
-
-	var KEY_0 = KeyCode.Zero;
-	var KEY_1 = KeyCode.One;
-	var KEY_2 = KeyCode.Two;
-	var KEY_3 = KeyCode.Three;
-	var KEY_4 = KeyCode.Four;
-	var KEY_5 = KeyCode.Five;
-	var KEY_6 = KeyCode.Six;
-	var KEY_7 = KeyCode.Seven;
-	var KEY_8 = KeyCode.Eight;
-	var KEY_9 = KeyCode.Nine;
-
-	var NUM_0 = KeyCode.Numpad0;
-	var NUM_1 = KeyCode.Numpad1;
-	var NUM_2 = KeyCode.Numpad2;
-	var NUM_3 = KeyCode.Numpad3;
-	var NUM_4 = KeyCode.Numpad4;
-	var NUM_5 = KeyCode.Numpad5;
-	var NUM_6 = KeyCode.Numpad6;
-	var NUM_7 = KeyCode.Numpad7;
-	var NUM_8 = KeyCode.Numpad8;
-	var NUM_9 = KeyCode.Numpad9;
+	var ESC = KeyCode.Escape;
+	var TAB = KeyCode.Tab;
+	var CAPSLOCK = KeyCode.CapsLock;
+	var SHIFT = KeyCode.Shift;
+	var CTRL = KeyCode.Control;
+	var WIN = KeyCode.Win;
+	var ALT = KeyCode.Alt;
+	var META = KeyCode.Meta;
+	var SPACE = KeyCode.Space;
+	var ALT_GR = KeyCode.AltGr;
+	var CONTEXT = KeyCode.ContextMenu;
+	var BACKSPACE = KeyCode.Backspace;
+	var ENTER = KeyCode.Return;
 
 	var F1 = KeyCode.F1;
 	var F2 = KeyCode.F2;
@@ -1004,6 +971,49 @@ abstract KeyboardEnum(Int) from Int to Int {
 	var F22 = KeyCode.F22;
 	var F23 = KeyCode.F23;
 	var F24 = KeyCode.F24;
+
+	var PRINT_SCREEN = KeyCode.PrintScreen;
+	var SCROLL_LOCK = KeyCode.ScrollLock;
+	var PAUSE = KeyCode.Pause;
+	var PRINT = KeyCode.Print;
+
+	var KEY_0 = KeyCode.Zero;
+	var KEY_1 = KeyCode.One;
+	var KEY_2 = KeyCode.Two;
+	var KEY_3 = KeyCode.Three;
+	var KEY_4 = KeyCode.Four;
+	var KEY_5 = KeyCode.Five;
+	var KEY_6 = KeyCode.Six;
+	var KEY_7 = KeyCode.Seven;
+	var KEY_8 = KeyCode.Eight;
+	var KEY_9 = KeyCode.Nine;
+
+	var	A = KeyCode.A;
+	var B = KeyCode.B;
+	var C = KeyCode.C;
+	var D = KeyCode.D;
+	var	E = KeyCode.E;
+	var F = KeyCode.F;
+	var G = KeyCode.G;
+	var H = KeyCode.H;
+	var	I = KeyCode.I;
+	var J = KeyCode.J;
+	var K = KeyCode.K;
+	var L = KeyCode.L;
+	var M = KeyCode.M;
+	var N = KeyCode.N;
+	var O = KeyCode.O;
+	var P = KeyCode.P;
+	var Q = KeyCode.Q;
+	var R = KeyCode.R;
+	var S = KeyCode.S;
+	var T = KeyCode.T;
+	var U = KeyCode.U;
+	var V = KeyCode.V;
+	var W = KeyCode.W;
+	var X = KeyCode.X;
+	var Y = KeyCode.Y;
+	var Z = KeyCode.Z;
 
 	var DOUBLE_QUOTE = KeyCode.DoubleQuote; // "
 	var BACK_QUOTE = KeyCode.BackQuote; // `
@@ -1041,25 +1051,6 @@ abstract KeyboardEnum(Int) from Int to Int {
 	var QUESTION = KeyCode.QuestionMark; // ?
 	var PIPE = KeyCode.Pipe; // |
 
-	var PRINT_SCREEN = KeyCode.PrintScreen;
-	var SCROLL_LOCK = KeyCode.ScrollLock;
-	var PAUSE = KeyCode.Pause;
-	var PRINT = KeyCode.Print;
-
-	var ESC = KeyCode.Escape;
-	var TAB = KeyCode.Tab;
-	var CAPSLOCK = KeyCode.CapsLock;
-	var SHIFT = KeyCode.Shift;
-	var CTRL = KeyCode.Control;
-	var WIN = KeyCode.Win;
-	var ALT = KeyCode.Alt;
-	var META = KeyCode.Meta;
-	var SPACE = KeyCode.Space;
-	var ALT_GR = KeyCode.AltGr;
-	var CONTEXT = KeyCode.ContextMenu;
-	var BACKSPACE = KeyCode.Backspace;
-	var ENTER = KeyCode.Return;
-
 	var HOME = KeyCode.Home;
 	var END = KeyCode.End;
 	var INSERT = KeyCode.Insert;
@@ -1067,9 +1058,10 @@ abstract KeyboardEnum(Int) from Int to Int {
 	var PAGE_UP = KeyCode.PageUp;
 	var PAGE_DOWN = KeyCode.PageDown;
 
-	var MUTE = KeyCode.VolumeMute;
-	var VOLUME_DOWN = KeyCode.VolumeDown;
-	var VOLUME_UP = KeyCode.VolumeUp;
+	var LEFT = KeyCode.Left;
+	var RIGHT = KeyCode.Right;
+	var UP = KeyCode.Up;
+	var DOWN = KeyCode.Down;
 
 	var NUM_LOCK = KeyCode.NumLock;
 	var CLEAR = KeyCode.Clear;
@@ -1077,6 +1069,21 @@ abstract KeyboardEnum(Int) from Int to Int {
 	var MULT = KeyCode.Multiply;
 	var SUB = KeyCode.Subtract;
 	var ADD = KeyCode.Add;
+
+	var NUM_0 = KeyCode.Numpad0;
+	var NUM_1 = KeyCode.Numpad1;
+	var NUM_2 = KeyCode.Numpad2;
+	var NUM_3 = KeyCode.Numpad3;
+	var NUM_4 = KeyCode.Numpad4;
+	var NUM_5 = KeyCode.Numpad5;
+	var NUM_6 = KeyCode.Numpad6;
+	var NUM_7 = KeyCode.Numpad7;
+	var NUM_8 = KeyCode.Numpad8;
+	var NUM_9 = KeyCode.Numpad9;
+
+	var MUTE = KeyCode.VolumeMute;
+	var VOLUME_DOWN = KeyCode.VolumeDown;
+	var VOLUME_UP = KeyCode.VolumeUp;
 
 	var SLEEP = KeyCode.Sleep;
 	var SELECT = KeyCode.Select;
