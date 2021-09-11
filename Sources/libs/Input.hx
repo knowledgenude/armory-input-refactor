@@ -413,7 +413,7 @@ class Keyboard extends Input {
 	override function keyDown(keyCode: Int) {
 		super.keyDown(keyCode);
 
-		#if kha_android_rmb	// Detect right mouse button on Android
+		#if kha_android_rmb // Detect right mouse button on Android
 		if (keyCode == KeyboardEnum.BACK)
 			if (mouse != null && !mouse.newDown(MouseEnum.LEFT))
 				@:privateAccess mouse.downListener(MouseEnum.LEFT, mouse.x, mouse.y);
