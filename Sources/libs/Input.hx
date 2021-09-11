@@ -1035,7 +1035,7 @@ abstract KeyboardEnum(Int) from Int to Int {
 	var OPEN_BRACKET = KeyCode.OpenBracket; // [
 	var CLOSE_BRACKET = KeyCode.CloseBracket; // ]
 	var OPEN_CURLY_BRACKET = KeyCode.OpenCurlyBracket; // {
-	var CLOSE_CURLY_BRACKET = KeyCode.CloseCurlyBracket; // {
+	var CLOSE_CURLY_BRACKET = KeyCode.CloseCurlyBracket; // }
 	var CIRCUMFLEX = KeyCode.Circumflex; // ^
 	var TILDE = KeyCode.Tilde; // ~
 	var BACK_SLASH = KeyCode.BackSlash; // \
