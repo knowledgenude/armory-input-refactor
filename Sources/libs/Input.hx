@@ -47,9 +47,6 @@ class Input {
 
 	public var lastKeyCodeDown(default, null): Int;
 
-	var repeatKey = false;
-	var repeatTime = 0.0;
-
 	function new() {
 		App.notifyOnEndFrame(endFrame);
 		App.notifyOnReset(reset);
