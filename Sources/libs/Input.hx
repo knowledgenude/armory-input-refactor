@@ -168,15 +168,6 @@ class Input {
 	}
 
 	/**
-		Check every repeat interval if a key is pressed.
-		@param	keyCode An Int representing the key code to check.
-		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
-	**/
-	public function newRepeat(keyCode: Int): Bool {
-		return newStarted(keyCode) || (repeatKey && newDown(keyCode));
-	}
-
-	/**
 		Check if any key is just pressed.
 		@return	Bool. Returns true if any key starts being pressed.
 	**/
@@ -254,15 +245,6 @@ class Input {
 		return releasedVirtualKeys.contains(virtualKey);
 	}
 
-	/**
-		Check every repeat interval if a virtual key is pressed.
-		@param	virtualKey A String representing the virtual key to check.
-		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
-	**/
-	public function repeatVirtual(virtualKey: String): Bool {
-		return startedVirtual(virtualKey) || (repeatKey && downVirtual(virtualKey));
-	}
-
 	// Keep compatibility
 	public inline function started(virtualKey = ""): Bool {
 		return startedVirtual(virtualKey);
@@ -274,10 +256,6 @@ class Input {
 
 	public inline function released(virtualKey = ""): Bool {
 		return releasedVirtual(virtualKey);
-	}
-
-	public function repeat(virtualKey: String): Bool {
-		return repeatVirtual(virtualKey);
 	}
 
 	public inline function setVirtual(virtualKey: String, key: String) {
@@ -299,8 +277,6 @@ class Input {
 				downVirtualKeys.push(str);
 			}
 		}
-
-		repeatTime = kha.Scheduler.time() + 0.4;
 
 		lastKeyCodeDown = keyCode;
 
@@ -337,12 +313,6 @@ class Input {
 				releasedVirtualKeys.resize(0);
 			}
 		}
-
-		if (kha.Scheduler.time() - repeatTime > 0.05) {
-			repeatTime = kha.Scheduler.time();
-			repeatKey = true;
-		}
-		else repeatKey = false;
 	}
 
 	function reset() {
@@ -356,6 +326,9 @@ class Input {
 }
 
 class Keyboard extends Input {
+	var repeatKey = false;
+	var repeatTime = 0.0;
+
 	public function new() {
 		super();
 
@@ -392,6 +365,30 @@ class Keyboard extends Input {
 		];
 	}
 
+	/**
+		Check every repeat interval if a key is pressed.
+		@param	keyCode An Int representing the key code to check.
+		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
+	**/
+	public function newRepeat(keyCode: Int): Bool {
+		return newStarted(keyCode) || (repeatKey && newDown(keyCode));
+	}
+
+	/**
+		Check every repeat interval if a virtual key is pressed.
+		@param	virtualKey A String representing the virtual key to check.
+		@return	Bool. Returns true if the key starts being pressed inside the repeat interval.
+	**/
+	public function repeatVirtual(virtualKey: String): Bool {
+		return startedVirtual(virtualKey) || (repeatKey && downVirtual(virtualKey));
+	}
+
+	// Keep compatibility
+	public function repeat(virtualKey: String): Bool {
+		return repeatVirtual(virtualKey);
+	}
+	// End
+
 	override function keyDown(keyCode: Int) {
 		super.keyDown(keyCode);
 
@@ -400,6 +397,18 @@ class Keyboard extends Input {
 			if (mouse != null && !mouse.newDown(MouseEnum.LEFT))
 				@:privateAccess mouse.downListener(MouseEnum.LEFT, mouse.x, mouse.y);
 		#end
+
+		repeatTime = kha.Scheduler.time() + 0.4;
+	}
+
+	override function endFrame() {
+		super.endFrame();
+
+		if (kha.Scheduler.time() - repeatTime > 0.05) {
+			repeatTime = kha.Scheduler.time();
+			repeatKey = true;
+		}
+		else repeatKey = false;
 	}
 }
 
