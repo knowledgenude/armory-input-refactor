@@ -37,8 +37,8 @@ class Input {
 	final downKeyCodes = new Array<Int>();
 	final releasedKeyCodes = new Array<Int>();
 
-	var notifyDown: Null<Array<Int -> Void>>;
-	var notifyUp: Null<Array<Int -> Void>>;
+	var downListeners: Null<Array<Int -> Void>>;
+	var upListeners: Null<Array<Int -> Void>>;
 
 	var virtualKeys: Null<Map<Int, String>>;
 	var startedVirtualKeys: Array<String>;
@@ -165,30 +165,6 @@ class Input {
 	}
 
 	/**
-		Check if any key is just pressed.
-		@return	Bool.
-	**/
-	public inline function anyStarted(): Bool {
-		return startedKeyCodes.length > 0;
-	}
-
-	/**
-		Check if any key is pressed down.
-		@return	Bool.
-	**/
-	public inline function anyDown(): Bool {
-		return downKeyCodes.length > 0;
-	}
-
-	/**
-		Check if any key was just released.
-		@return	Bool.
-	**/
-	public inline function anyReleased(): Bool {
-		return releasedKeyCodes.length > 0;
-	}
-
-	/**
 		Set the virtual string representation of a key.
 		Multiple representations can be set for a same key.
 		@param	keyCode An Int representing the key code to be virtualized.
@@ -235,12 +211,64 @@ class Input {
 	}
 
 	/**
-		Check if a virtual key was just released.
+		Check if a virtual key is just released.
 		@param	virtualKey A String representing the virtual key to check.
 		@return	Bool.
 	**/
 	public inline function releasedVirtual(virtualKey: String): Bool {
 		return releasedVirtualKeys.contains(virtualKey);
+	}
+
+	/**
+		Check if any key is just pressed.
+		@return	Bool.
+	**/
+	public inline function anyStarted(): Bool {
+		return startedKeyCodes.length > 0;
+	}
+
+	/**
+		Check if any key is pressed down.
+		@return	Bool.
+	**/
+	public inline function anyDown(): Bool {
+		return downKeyCodes.length > 0;
+	}
+
+	/**
+		Check if any key is just released.
+		@return	Bool.
+	**/
+	public inline function anyReleased(): Bool {
+		return releasedKeyCodes.length > 0;
+	}
+
+	/**
+		Add a call to a function when any key is pressed down.
+		@param f The function to be called when the event is triggered.
+		@return Int -> Void.
+	**/
+	public function notifyOnDown(f: Int -> Void): Int -> Void {
+		if (downListeners == null)
+			downListeners = new Array<Int -> Void>();
+
+		downListeners.push(f);
+
+		return f;
+	}
+
+	/**
+		Add a call to a function when any key is just released.
+		@param f The function to be called when the event is triggered.
+		@return Int -> Void.
+	**/
+	public function notifyOnUp(f: Int -> Void): Int -> Void {
+		if (upListeners == null)
+			upListeners = new Array<Int -> Void>();
+		
+		upListeners.push(f);
+
+		return f;
 	}
 
 	// Keep compatibility
@@ -278,8 +306,8 @@ class Input {
 
 		lastKeyCodeDown = keyCode;
 
-		if (notifyDown != null)
-			for (f in notifyDown)
+		if (downListeners != null)
+			for (f in downListeners)
 				f(keyCode);
 	}
 
@@ -296,8 +324,8 @@ class Input {
 			}
 		}
 
-		if (notifyUp != null)
-			for (f in notifyUp)
+		if (upListeners != null)
+			for (f in upListeners)
 				f(keyCode);
 	}
 
